@@ -11,10 +11,10 @@ dt = 0                      # delta time - time since last frame
 # font setup
 pygame.font.init()
 font = init_font()
-text = font.render("Game Start!", True, (255, 255, 255))
 
 # player setup - initialized with start position
-player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+CENTER = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+player_pos = pygame.Vector2(CENTER)
 
 # event loop
 while running:
@@ -24,10 +24,10 @@ while running:
             running = False
     
     refresh_background(screen)
-    regular_polygon(screen, player_pos, 100, 5)
+    regular_polygon(screen, CENTER, 100, 6)
     
-    
-    screen.blit(text, (0, 0))
+    info_msg = "X: {:8f}\nY: {:8f}".format(player_pos.x, player_pos.y)
+    screen.blit(font.render("X: " + str(player_pos.x) + "\nY: " + str(player_pos.y), True, (255, 255, 255)), (0, 0))
     pygame.draw.circle(screen, "blue", player_pos, 50)
     
     keys = pygame.key.get_pressed()

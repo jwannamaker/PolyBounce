@@ -27,3 +27,6 @@ def regular_polygon(surface, center, radius, num_sides):
         y = (radius * np.sin(theta)) + center.y
         vertices.append(pygame.Vector2(x, y))
     pygame.draw.polygon(surface, "red", vertices)
+    
+def show_stats(surface):
+    pass
