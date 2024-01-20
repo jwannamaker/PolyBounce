@@ -6,7 +6,7 @@ pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 running = True
-dt = 0          # delta time - time since last frame
+dt = 0                      # delta time - time since last frame
 
 # font setup
 pygame.font.init()
@@ -23,23 +23,28 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     
-    screen.fill("black")    # wipe screen from last frame
+    refresh_background(screen)
+    regular_polygon(screen, player_pos, 100, 5)
+    
+    
     screen.blit(text, (0, 0))
-    pygame.draw.circle(screen, "blue", player_pos, 30)
+    pygame.draw.circle(screen, "blue", player_pos, 50)
     
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_w]:
+    
+    if keys[pygame.K_w] and player_pos.y - 50 > 0:
         player_pos.y -= 100 * dt
-    if keys[pygame.K_s]:
+    if keys[pygame.K_s] and player_pos.y + 50 < screen.get_height():
         player_pos.y += 100 * dt
-    if keys[pygame.K_a]:
+    
+    if keys[pygame.K_a] and player_pos.x - 50 > 0:
         player_pos.x -= 100 * dt
-    if keys[pygame.K_d]:
+    if keys[pygame.K_d] and player_pos.x + 50 < screen.get_width():
         player_pos.x += 100 * dt
     
     
-    pygame.display.update() # ? --> what's the difference between flip and update?
+    pygame.display.update()     # ? --> what's the difference between flip and update?
     
-    # limits FPS to 60
+    # limits FPS
     dt = clock.tick(60) / 1000
 pygame.quit()
