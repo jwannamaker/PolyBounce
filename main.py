@@ -34,14 +34,15 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        player_ball.update(dt)
         
         refresh_background(screen)
         screen.blit(background, (0, 0))
-        
-        
         info_msg = "=== Player Position ====\nX: {:8.2f}\nY: {:8.2f}".format(player_ball.position.x, player_ball.position.y)
         show_stats(screen, font, info_msg)
+        
+        
+        player_ball.update(dt)
+        
         
         sprite.draw(screen)
         pygame.display.flip()     # ? --> what's the difference between flip and update?
