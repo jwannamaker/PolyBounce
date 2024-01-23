@@ -12,6 +12,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 CENTER = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 
 BACKGROUND_PALLETE = {
+    'black': (10, 10, 10),
     'magenta': (129, 55, 113),
     'dark-purple': (63, 45, 112),
     'grey-blue': (83, 91, 113)

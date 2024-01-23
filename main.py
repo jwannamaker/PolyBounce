@@ -48,9 +48,11 @@ def main():
                 if event.key == pygame.K_a:
                     # TODO ring call
                     print('Move current ring counterclockwise')
+                    ring.ccw_rotate()
                 if event.key == pygame.K_d:
                     # TODO ring call
                     print('Move current ring clockwise')
+                    ring.cw_rotate()
 
                 if event.key == pygame.K_SPACE:
                     # TODO player_ball call
@@ -58,7 +60,7 @@ def main():
                 if event.key == pygame.K_LSHIFT:
                     # TODO player_ball call
                     print('FREEZE player_ball')
-            else:
+            else: # elif event.type == pygame.KEYUP:
                 
                 
                 # TODO Move player_ball according to kinematics. 
@@ -67,15 +69,12 @@ def main():
                 player_ball.falling = True
         
         
-        # refresh_background(screen)
-        # screen.blit(background, (0, 0))
+        screen.fill(BACKGROUND_PALLETE['black'])
         info_msg =  '=== Player Position ====\n' + \
                     f'X: {player_ball.position.x:8.2f}\n' + \
                     f'Y: {player_ball.position.y:8.2f}'
-        show_stats(screen, font, info_msg)
-        
-        
-        player_ball.update(dt)
+        screen.blit(font.render(info_msg, True, BACKGROUND_PALLETE['grey-blue']), (0, 0))
+        sprites.update()
         sprites.draw(screen)
         pygame.display.flip()
         

@@ -30,7 +30,7 @@ class Hexagon(pygame.sprite.Sprite):
     
     def __init__(self, radius, N=6, inner_ring=None):
         pygame.sprite.Sprite.__init__(self)
-        self.N = (N)            # number of sides
+        self.N = N            # number of sides
         self.center = CENTER
         self.radius = radius    
         # self.active = False     # active ==> ball currently inside
@@ -38,7 +38,7 @@ class Hexagon(pygame.sprite.Sprite):
         self.vertices = self.get_vertices()
         # self.lines = 
         
-        self.base_surface = pygame.display.get_surface()
+        # self.base_surface = pygame.display.get_surface()
         self.image = pygame.Surface(SIZE, pygame.SRCALPHA, 32)
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.center.x - self.radius, self.center.y - self.radius)
@@ -68,7 +68,7 @@ class Hexagon(pygame.sprite.Sprite):
         
         
     def update(self):
-        self.draw()
+        pygame.draw.aalines(pygame.display.get_surface(), random.choice(list(RING_PALLETE.values())), False, self.vertices)
         
         
         

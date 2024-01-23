@@ -16,28 +16,28 @@ class Ball(pygame.sprite.Sprite):
         self.velocity = pygame.Vector2(0, 0)
         self.acceleration = pygame.Vector2(0, 0)
         
-    def update(self, dt):
-        '''
+    def update(self):
+        keys = pygame.key.get_pressed()
+        
         if keys[pygame.K_w] and self.position.y - self.radius > 0:
-            self.velocity.y *= -10
-            self.position.y -= self.velocity.y * dt
+            self.position.y -= self.velocity.y
         if keys[pygame.K_s] and self.position.y + self.radius < SCREEN_HEIGHT:
-            self.velocity.y *= 10
-            self.position.y += self.velocity.y * dt
+            self.position.y += self.velocity.y
         
         if keys[pygame.K_a] and self.position.x - self.radius > 0:
-            self.velocity.x *= -10
-            self.position.x -= self.velocity.x * dt
+            self.position.x -= self.velocity.x
         if keys[pygame.K_d] and self.position.x + self.radius < SCREEN_WIDTH:
-            self.velocity.x *= 10
-            self.position.x += self.velocity.x * dt
-        '''
+            self.position.x += self.velocity.x
+        
         
         self.rect.move_ip(self.position.x, self.position.y)
     
     def jump(self):
         # TODO can only jump if the ball is on the ground
         print('Jumping the ball')
+        # TODO define the increase in height amount
+        # TODO remember projectile motion, gravity is working the whole time
+        self.physics()
     
     def physics(self):
         self.acceleration = GRAVITY
@@ -45,6 +45,7 @@ class Ball(pygame.sprite.Sprite):
         self.velocity.y += self.acceleration.y * 0.1
         
         self.position.y += self.velocity.y * 0.1
+        # TODO boundary check this
         
         
         
