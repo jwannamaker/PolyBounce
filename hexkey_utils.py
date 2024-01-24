@@ -2,7 +2,9 @@
     _summary_: Utility function module for the hexkeys project.
 '''
 
-import pygame, os
+import os
+import pygame
+from pygame.locals import *
 import numpy as np
 
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]

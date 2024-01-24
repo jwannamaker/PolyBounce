@@ -20,15 +20,15 @@ RING_PALLETE = {
 }
 SIZE = (300, 300)
 
-class Hexagon(pygame.sprite.Sprite):
-    '''Hexagon ring rotates using  A (counterclockwise) and D (clockwise).
+class Polygon(pygame.sprite.Sprite):
+    '''Polygon ring rotates using  A (counterclockwise) and D (clockwise).
 
     Args:
         pygame (pygame.sprite.Sprite): base class
     '''
     
     
-    def __init__(self, radius, N=6, inner_ring=None):
+    def __init__(self, radius, N=4, inner_ring=None):
         pygame.sprite.Sprite.__init__(self)
         self.N = N            # number of sides
         self.center = CENTER
@@ -68,12 +68,11 @@ class Hexagon(pygame.sprite.Sprite):
         
         
     def update(self):
-        pygame.draw.aalines(pygame.display.get_surface(), random.choice(list(RING_PALLETE.values())), False, self.vertices)
+        pygame.draw.aalines(pygame.display.get_surface(), random.choice(list(RING_PALLETE.values())), True, self.vertices)
         
         
         
     def cw_rotate(self):
-        # TODO
         pass
         
     def ccw_rotate(self):

@@ -1,7 +1,6 @@
 '''
     _summary_: Game object class for the player in hexkeys
 '''
-import pygame
 from hexkey_utils import *
 
 GRAVITY = pygame.Vector2(0, 9.81)
@@ -16,17 +15,20 @@ class Ball(pygame.sprite.Sprite):
         self.velocity = pygame.Vector2(0, 0)
         self.acceleration = pygame.Vector2(0, 0)
         
+        # self.surface = pygame.Surface((self.radius * 2, self.radius * 2))
+        # self.rect = pygame.Rect((CENTER.x - self.radius, CENTER.y - self.radius), (CENTER.x + self.radius, CENTER.y + self.radius))
+        
     def update(self):
         keys = pygame.key.get_pressed()
         
-        if keys[pygame.K_w] and self.position.y - self.radius > 0:
+        if keys[K_w] and self.position.y - self.radius > 0:
             self.position.y -= self.velocity.y
-        if keys[pygame.K_s] and self.position.y + self.radius < SCREEN_HEIGHT:
+        if keys[K_s] and self.position.y + self.radius < SCREEN_HEIGHT:
             self.position.y += self.velocity.y
         
-        if keys[pygame.K_a] and self.position.x - self.radius > 0:
+        if keys[K_a] and self.position.x - self.radius > 0:
             self.position.x -= self.velocity.x
-        if keys[pygame.K_d] and self.position.x + self.radius < SCREEN_WIDTH:
+        if keys[K_d] and self.position.x + self.radius < SCREEN_WIDTH:
             self.position.x += self.velocity.x
         
         
