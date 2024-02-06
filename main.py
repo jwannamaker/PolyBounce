@@ -10,9 +10,10 @@ def main():
     # pygame setup
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption('Johnny\'s First Video Game!')
     clock = pygame.time.Clock()
-    dt = 0
-    fps = 8
+    dt = 0          # Time passed in milliseconds since the last frame
+    fps = 60
     
     # font setup
     pygame.font.init()
@@ -25,21 +26,9 @@ def main():
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
-    # player setup - initialized with start position
-    player_ball = Ball()
-    start = int(input('Start N: \t\t'))
-    end = int(input('End N: \t\t\t'))
-    count = int(input('Rings per Shape: \t'))
-    base_radius = int(input('Base Radius: \t\t'))
-    step_radius = int(input('Step Radius: \t\t'))
-    
-    rings = []
-    for i in range(start, end, 1):
-        for j in range(count):
-            base_radius += step_radius
-            rings.append(Polygon(base_radius, N=i))
-    
-    sprites = pygame.sprite.Group(rings)
+    # player object setup - initialized with start position
+    player_ball = Ball(10, PALLETE['light-purple'])
+    sprites = pygame.sprite.Group(player_ball)
     
     # event loop
     running = True
@@ -53,42 +42,35 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 player_ball.falling = False
                 if event.key == pygame.K_w:
-                    # TODO ring call
-                    print('Switch current ring up')
+                    print(f'{dt}: W')
                 if event.key == pygame.K_s:
-                    # TODO ring call
-                    print('Switch current ring down')
-                    
+                    print(f'{dt}: S')
                 if event.key == pygame.K_a:
-                    # TODO ring call
-                    print('Move current ring counterclockwise')
-                    # ring.ccw_rotate()
+                    print(f'{dt}: A')
                 if event.key == pygame.K_d:
-                    # TODO ring call
-                    print('Move current ring clockwise')
-                    # ring.cw_rotate()
+                    print(f'{dt}: D')
 
                 if event.key == pygame.K_SPACE:
                     # TODO player_ball call
-                    print('JUMP player_ball')
+                    print(f'{dt}: SPACE')
                 if event.key == pygame.K_LSHIFT:
                     # TODO player_ball call
-                    print('FREEZE player_ball')
+                    print(f'{dt}: LSHIFT')
             else: # elif event.type == pygame.KEYUP:
                 
                 
                 # TODO Move player_ball according to kinematics. 
                 # TODO It falls + bounces on the surface of the shape it is in
-                print('player_ball falling')
+                print('falling...')
                 player_ball.falling = True
         
         
         screen.fill(BACKGROUND_PALLETE['black'])
-        # info_msg =  '=== Player Position ====\n' + \
-        #             f'X: {player_ball.position.x:8.2f}\n' + \
-        #             f'Y: {player_ball.position.y:8.2f}'
-        # screen.blit(font.render(info_msg, True, BACKGROUND_PALLETE['grey-blue']), (0, 0))
-        sprites.update()
+        info_msg =  '=== Player Position ====\n' + \
+                    f'X: {player_ball.position[0]:8.2f}\n' + \
+                    f'Y: {player_ball.position[1]:8.2f}'
+        screen.blit(font.render(info_msg, True, BACKGROUND_PALLETE['grey-blue']), (0, 0))
+        player_ball.update(screen)
         sprites.draw(screen)
         pygame.display.flip()
         
