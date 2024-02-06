@@ -1,52 +1,46 @@
 '''
     _summary_: Game object class for the player in hexkeys
 '''
-import pygame
 from hexkey_utils import *
 
-GRAVITY = pygame.Vector2(0, 9.81)
+GRAVITY = np.array([0, 9.81])
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, radius, color):
         pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image("ball.png", -1)
-        self.radius = 64
+        
+        self.radius = radius
+        self.color = color
+        
         self.falling = False
-        self.position = CENTER
-        self.velocity = pygame.Vector2(0, 0)
-        self.acceleration = pygame.Vector2(0, 0)
+        self.position = np.array([SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2])
+        self.velocity = np.array([0.0, 1.0])
+        self.acceleration = np.array([0.0, 9.81])
         
-    def update(self, dt):
-        keys = pygame.key.get_pressed()
+        self.image = pygame.Surface((self.radius * 2, self.radius * 2))
+        self.image.fill((255, 255, 255))
+        self.image.set_colorkey((255, 255, 255))
+        pygame.draw.circle(self.image, self.color, self.position.astype(int), self.radius)
+        self.rect = self.image.get_rect()
         
-        if keys[pygame.K_w] and self.position.y - self.radius > 0:
-            self.velocity.y *= -10
-            self.position.y -= self.velocity.y * dt
-        if keys[pygame.K_s] and self.position.y + self.radius < SCREEN_HEIGHT:
-            self.velocity.y *= 10
-            self.position.y += self.velocity.y * dt
+    def update(self, screen):
         
-        if keys[pygame.K_a] and self.position.x - self.radius > 0:
-            self.velocity.x *= -10
-            self.position.x -= self.velocity.x * dt
-        if keys[pygame.K_d] and self.position.x + self.radius < SCREEN_WIDTH:
-            self.velocity.x *= 10
-            self.position.x += self.velocity.x * dt
+        if self.position[0] - self.radius < 0 or self.position[0] + self.radius > SCREEN_WIDTH:
+            self.velocity[0] = -self.velocity[0]
+        if self.position[1] - self.radius < 0 or self.position[1] + self.radius > SCREEN_HEIGHT:
+            self.velocity[1] = -self.velocity[1]
         
-        
-        self.rect.move_ip(self.position.x, self.position.y)
+        self.acceleration /= 2
+        self.velocity += self.acceleration
+        self.position += self.velocity
+        # self.rect.move_ip()
+        pygame.draw.circle(screen, self.color, self.position.astype(int), self.radius)
     
     def jump(self):
-        pass
-    
-    def physics(self):
-        self.acceleration = GRAVITY
-        
-        self.velocity.y += self.acceleration.y * 0.1
-        
-        self.position.y += self.velocity.y * 0.1
-        
-        
+        # TODO can only jump if the ball is on the ground
+        print('Jumping the ball')
+        # TODO define the increase in height amount
+        # TODO remember projectile motion, gravity is working the whole time
         
         
         
