@@ -4,14 +4,13 @@
 
 import os
 import pygame
-from pygame.locals import *
 import numpy as np
 
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, 'data')
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
-CENTER = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+CENTER = np.array([SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2])
 
 PALLETE = {
     'white': (255, 255, 255),

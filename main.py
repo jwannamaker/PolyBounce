@@ -2,6 +2,7 @@
 
 '''
 import pygame
+from tabulate import tabulate
 from hexkey_utils import *
 from player import *
 from polygon import * 
@@ -28,7 +29,7 @@ def main():
 
     # player object setup - initialized with start position
     player_ball = Ball(10, PALLETE['light-purple'])
-    sprites = pygame.sprite.Group(player_ball)
+    # sprites = pygame.sprite.Group(player_ball)
     
     # event loop
     running = True
@@ -40,38 +41,36 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                player_ball.falling = False
+                
                 if event.key == pygame.K_w:
-                    print(f'{dt}: W')
+                    player_ball.move_up()
                 if event.key == pygame.K_s:
-                    print(f'{dt}: S')
+                    player_ball.move_down()
                 if event.key == pygame.K_a:
-                    print(f'{dt}: A')
+                    player_ball.move_left()
                 if event.key == pygame.K_d:
-                    print(f'{dt}: D')
+                    player_ball.move_right()
 
                 if event.key == pygame.K_SPACE:
-                    # TODO player_ball call
-                    print(f'{dt}: SPACE')
+                    player_ball.freeze()
                 if event.key == pygame.K_LSHIFT:
-                    # TODO player_ball call
                     print(f'{dt}: LSHIFT')
-            else: # elif event.type == pygame.KEYUP:
-                
-                
-                # TODO Move player_ball according to kinematics. 
-                # TODO It falls + bounces on the surface of the shape it is in
-                print('falling...')
-                player_ball.falling = True
         
         
         screen.fill(BACKGROUND_PALLETE['black'])
-        info_msg =  '=== Player Position ====\n' + \
-                    f'X: {player_ball.position[0]:8.2f}\n' + \
-                    f'Y: {player_ball.position[1]:8.2f}'
-        screen.blit(font.render(info_msg, True, BACKGROUND_PALLETE['grey-blue']), (0, 0))
+        headers = ['X', 'Y']
+        table = [player_ball.position, 
+                player_ball.velocity, 
+                player_ball.acceleration]
+        # info_msg =  '-------------------------------\n' + \
+        #             f'Position X: {player_ball.position[0]:8.2f}\n' + \
+        #             f'Position Y: {player_ball.position[1]:8.2f}\n\n' + \
+        #             '-------------------------------\n' + \
+        #             f'Velocity X: {player_ball.velocity[0]:8.2f}\n' + \
+        #             f'Velocity Y: {player_ball.velocity[1]:8.2f}\n'
+        # screen.blit(font.render(tabulate(table, headers), True, PALLETE['white']), (0, 0))
         player_ball.update(screen)
-        sprites.draw(screen)
+        # sprites.draw(screen)
         pygame.display.flip()
         
     pygame.quit()
