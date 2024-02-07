@@ -1,8 +1,8 @@
 '''
 
 '''
+from prettytable import PrettyTable, SINGLE_BORDER
 import pygame
-from tabulate import tabulate
 from hexkey_utils import *
 from player import *
 from polygon import * 
@@ -11,7 +11,7 @@ def main():
     # pygame setup
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption('Johnny\'s First Video Game!')
+    pygame.display.set_caption('Johnny Tries Physics!')
     clock = pygame.time.Clock()
     dt = 0          # Time passed in milliseconds since the last frame
     fps = 60
@@ -28,7 +28,7 @@ def main():
     pygame.display.flip()
 
     # player object setup - initialized with start position
-    player_ball = Ball(10, PALLETE['light-purple'])
+    player_ball = Ball(mass=5, radius=10, color=PALLETE['light-purple'])
     # sprites = pygame.sprite.Group(player_ball)
     
     # event loop
@@ -40,37 +40,53 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.KEYDOWN:
-                
-                if event.key == pygame.K_w:
-                    player_ball.move_up()
-                if event.key == pygame.K_s:
-                    player_ball.move_down()
-                if event.key == pygame.K_a:
-                    player_ball.move_left()
-                if event.key == pygame.K_d:
-                    player_ball.move_right()
-
-                if event.key == pygame.K_SPACE:
-                    player_ball.freeze()
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LSHIFT:
-                    print(f'{dt}: LSHIFT')
+                    player_ball.add_key_held('boost')
+                
+                if event.key == pygame.K_d:
+                    # player_ball.velocity[0] += 5
+                    player_ball.add_key_held('right')
+                if event.key == pygame.K_a:
+                    # player_ball.velocity[0] += -5
+                    player_ball.add_key_held('left')
+                if event.key == pygame.K_w:
+                    # player_ball.acceleration[1] += -0.1
+                    player_ball.add_key_held('up')
+                if event.key == pygame.K_s:
+                    # player_ball.acceleration[1] += 0.1
+                    player_ball.add_key_held('down')
+                
+                if event.key == pygame.K_SPACE:
+                    player_ball.add_key_held('jump')
+                    # if player_ball.position[1] >= 4 * (SCREEN_HEIGHT / 5):
+                    #     player_ball.velocity[1] += -10
+                    
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LSHIFT:
+                    player_ball.remove_key_held('boost')
+                
+                if event.key == pygame.K_d:
+                    
+                    player_ball.remove_key_held('right')
+                if event.key == pygame.K_a:
+                    
+                    player_ball.remove_key_held('left')
+                if event.key == pygame.K_w:
+                    
+                    player_ball.remove_key_held('up')
+                if event.key == pygame.K_s:
+                    
+                    player_ball.remove_key_held('down')
+                
+                if event.key == pygame.K_SPACE:
+                    player_ball.remove_key_held('jump')
+                
         
         
         screen.fill(BACKGROUND_PALLETE['black'])
-        headers = ['X', 'Y']
-        table = [player_ball.position, 
-                player_ball.velocity, 
-                player_ball.acceleration]
-        # info_msg =  '-------------------------------\n' + \
-        #             f'Position X: {player_ball.position[0]:8.2f}\n' + \
-        #             f'Position Y: {player_ball.position[1]:8.2f}\n\n' + \
-        #             '-------------------------------\n' + \
-        #             f'Velocity X: {player_ball.velocity[0]:8.2f}\n' + \
-        #             f'Velocity Y: {player_ball.velocity[1]:8.2f}\n'
-        # screen.blit(font.render(tabulate(table, headers), True, PALLETE['white']), (0, 0))
-        player_ball.update(screen)
-        # sprites.draw(screen)
+        
+        player_ball.update()
         pygame.display.flip()
         
     pygame.quit()
