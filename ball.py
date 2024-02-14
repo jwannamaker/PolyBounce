@@ -3,19 +3,15 @@
 '''
 from utils import *
 
-GRAVITY = np.array([0, 5])
-
 class Ball(pygame.sprite.Sprite):
     def __init__(self, radius, color):
-        # print(str(super()), self.groups())
         super().__init__()
         self.radius = radius
         self.color = color
-        self.position = CENTER
-        # self.mass = mass
+        self.position = Vector2(CENTER)
         
-        self.velocity = np.array([0.0, 0.0])
-        self.acceleration = np.array([0.0, 0.0])
+        self.velocity = Vector2()
+        self.acceleration = Vector2()
         
         self.keys_held = []
         
@@ -25,11 +21,24 @@ class Ball(pygame.sprite.Sprite):
         
         pygame.draw.circle(self.image, self.color, [self.radius, self.radius], self.radius)
         self.rect = self.image.get_rect()
-        self.rect.topleft = self.position.astype(int) - self.radius
+        self.rect.topleft = self.position - Vector2(self.radius)
         
     def draw(self, surface):
-        self.rect.topleft = self.position - self.radius
+        '''
+            Draws the ball on the specified surface by first calculating where 
+            the topleft is positioned. Necessary because .blit() takes the 
+            topleft as the second argument.
+        '''
+        self.rect.topleft = self.position - Vector2(self.radius)
         surface.blit(self.image, self.rect.topleft) 
+        
+    def collides_with(self, other):
+        '''
+            Returns True is the distance from the center of the ball to the center 
+            of the other object is less than or equal to the sum of their radii.
+        '''
+        distance = self.position.distance_to(other.position)
+        return distance <= self.radius + other.radius
     
     def update(self):
         self.acceleration = GRAVITY
@@ -48,8 +57,8 @@ class Ball(pygame.sprite.Sprite):
             self.velocity[0] *= -0.2    # Negative to reverse direction, < 1 to simulate loss of momentum
             
         # Checking if hit right wall
-        if self.position[0] + self.radius >= SCREEN_WIDTH:
-            self.position[0] = SCREEN_WIDTH - self.radius
+        if self.position[0] + self.radius >= SCREEN_SIZE.x:
+            self.position[0] = SCREEN_SIZE.x - self.radius
             self.velocity[0] *= -0.2    # Bounce off with a dampening effect
             
         # Checking if hit top wall
@@ -58,11 +67,11 @@ class Ball(pygame.sprite.Sprite):
             self.velocity[1] *= -0.9   
 
         # Checking if hit bottom wall
-        if self.position[1] + self.radius >= SCREEN_HEIGHT:
-            self.position[1] = SCREEN_HEIGHT - self.radius
+        if self.position[1] + self.radius >= SCREEN_SIZE.y:
+            self.position[1] = SCREEN_SIZE.y - self.radius
             self.velocity[1] *= -0.9
         
-        self.rect.topleft = self.position.astype(int) - self.radius
+        self.rect.topleft = self.position - Vector2(self.radius)
         
     def add_key_held(self, key):
         self.keys_held.append(key)

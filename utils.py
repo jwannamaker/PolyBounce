@@ -5,12 +5,33 @@
 import os
 import pygame
 import numpy as np
+from pygame import Vector2
 
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, 'data')
 
-SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
-CENTER = np.array((SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+SCREEN_SIZE = Vector2(1280, 720)
+CENTER = Vector2(SCREEN_SIZE // 2)
+
+GRAVITY = np.array([0, 5])
+
+RING_PADDING = 50
+RING_SIDES = {
+    'up_left', 
+    'up', 
+    'up_right', 
+    'down_right', 
+    'down', 
+    'down_left'
+}
+RING_PALLETE = {
+    'white': (250, 250, 250),
+    'pink': (201, 93, 177),
+    'light-purple': (137, 100, 187),
+    'blue': (157, 169, 214),
+    'light-blue': (170, 224, 241),
+    'cyan': (144, 239, 240)
+}
 
 PALLETE = {
     'white': (255, 255, 255),
@@ -30,3 +51,14 @@ BACKGROUND_PALLETE = {
 def load_font():
     font_file = os.path.join(DATA_DIR, 'Emulogic-zrEw.ttf')
     return pygame.font.Font(font_file, 12)
+
+def rotate_vector(angle, x, y):
+    '''
+    After rotation the vector is noted by
+    x' = x * cos(theta) - y * sin(theta)
+    y' = x * sin(theta) + y * cos(theta)
+    '''
+    a = np.cos(angle)
+    b = np.sin(angle)
+    R = np.matrix((a, -b), (b, a))
+    return np.matmul(((a, -b), (b, a)), (x, y))

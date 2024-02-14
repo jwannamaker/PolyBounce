@@ -1,35 +1,6 @@
 import pygame
 from utils import *
 
-RING_PADDING = 50
-RING_SIDES = {
-    'up_left', 
-    'up', 
-    'up_right', 
-    'down_right', 
-    'down', 
-    'down_left'
-}
-RING_PALLETE = {
-    'white': (250, 250, 250),
-    'pink': (201, 93, 177),
-    'light-purple': (137, 100, 187),
-    'blue': (157, 169, 214),
-    'light-blue': (170, 224, 241),
-    'cyan': (144, 239, 240)
-}
-
-def rotate_vector(angle, x, y):
-    '''
-    After rotation the vector is noted by
-    x' = x * cos(theta) - y * sin(theta)
-    y' = x * sin(theta) + y * cos(theta)
-    '''
-    a = np.cos(angle)
-    b = np.sin(angle)
-    R = np.matrix((a, -b), (b, a))
-    return np.matmul(((a, -b), (b, a)), (x, y))
-
 class Polygon(pygame.sprite.Sprite):
     '''Polygon ring rotates using  Q (counterclockwise) and E (clockwise).
 
@@ -38,11 +9,10 @@ class Polygon(pygame.sprite.Sprite):
     '''
     
     def __init__(self, radius, color, N):
-        # print(str(super()), self.groups())
         super().__init__()
         self.radius = radius    
         self.color = color
-        self.position = np.array([SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2])
+        self.position = Vector2(CENTER)
         self.N = N            # number of sides
         
         self.active = False     # active ==> ball currently inside
@@ -50,7 +20,6 @@ class Polygon(pygame.sprite.Sprite):
         
         self.theta = self.get_theta()
         self.vertices = self.get_vertices()
-        self.vectors = self.get_vectors()
         self.image = pygame.Surface((self.radius * 2, self.radius * 2))
         self.image.fill((0, 0, 0))
         self.image.set_colorkey((0, 0, 0))
@@ -71,21 +40,21 @@ class Polygon(pygame.sprite.Sprite):
             vertices.append(np.array((x, y)))
         return vertices
 
-    def get_vectors(self):
-        vectors = []
-        for p in self.vertices:
-            pygame.
-            vectors.append(self.position.astype(float), p)
-        return vectors
+    # def get_vectors(self):
+    #     vectors = []
+    #     for p in self.vertices:
+    #         pygame.
+    #         vectors.append(self.position.astype(float), p)
+    #     return vectors
     
     def draw(self, surface):
-        blit_position = self.position - self.radius
-        surface.blit(self.image, blit_position.astype(int))
+        blit_position = self.position - Vector2(self.radius)
+        surface.blit(self.image, blit_position)
         
     def update(self):
         # self.rect.x, self.rect.y = self.position.astype(int) - self.radius
         self.rect = pygame.draw.lines(self.image, self.color, True, self.vertices)
-        self.rect.topleft = self.position.astype(int) - self.radius
+        self.rect.topleft = self.position - Vector2(self.radius)
         
     def cw_rotate(self):
         # new_vertices = []
