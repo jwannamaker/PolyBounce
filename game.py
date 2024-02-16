@@ -109,7 +109,8 @@ class PolyBounce:
                 dy = ring_mask.overlap_area(player_mask, (offset_x, offset_y + 1)) - ring_mask.overlap_area(player_mask, (offset_x, offset_y - 1))
                 # self.player_ball.position.x = 
                 # self.player_ball.position.y = 
-                
+                self.player_ball.direction.x += dx
+                self.player_ball.direction.y += dy
                 # to_center_x = self.position.distance_to((CENTER.x, 0))
                 # to_center_y = self.position.distance_to((0, CENTER.y))
         self.player_ball.update(self.dt)

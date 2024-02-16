@@ -10,8 +10,8 @@ class Ball(pygame.sprite.Sprite):
         self.color = color
         self.position = Vector2(CENTER)
         
-        self.speed = Vector2()
-        self.direction = Vector2()
+        self.speed = Vector2(20, 20)
+        self.direction = Vector2(0, 10)
         # self.acceleration = Vector2(GRAVITY)
         
         self.keys_held = []
