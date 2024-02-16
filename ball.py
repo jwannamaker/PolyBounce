@@ -57,9 +57,9 @@ class Ball(pygame.sprite.Sprite):
         self.velocity += self.acceleration * dt
         # Applying any user input for movement 
         if self.keys_held.count('left'):
-            self.direction.x += 1
+            self.velocity.x *= 1.1
         if self.keys_held.count('right'):
-            self.direction.x -= 1
+            self.velocity.x *= -1.1
             
         # Checking if hit left wall, correct position to be within the wall and bounce off
         if self.position.x - self.radius < 0:

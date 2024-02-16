@@ -93,7 +93,7 @@ class PolyBounce:
     
     def process_game_logic(self):
         # Checks if the player ball is currently inside of the inscribed circle of the ring
-        if pygame.sprite.spritecollide(self.player_ball, self.ring_group, False, pygame.sprite.collide_mask):
+        if pygame.sprite.spritecollide(self.player_ball, self.ring_group, False, pygame.sprite.collide_rect):
             
             player_mask = self.player_ball.mask
             ring_mask = self.inner_ring.mask
@@ -102,21 +102,12 @@ class PolyBounce:
             
             overlap_amount = ring_mask.overlap_area(player_mask, (offset_x, offset_y))
             if overlap_amount >= 1:
-                # Now that we have an overlap amount, we need to calculate the 
-                # normal of the collision by separating the overlap amount in the x 
-                # direction and the overlap amount in the y direction
-                # overlap = ring_mask.overlap(player_mask, (offset_x, offset_y))
                 dx = ring_mask.overlap_area(player_mask, (offset_x + 1, offset_y)) - ring_mask.overlap_area(player_mask, (offset_x - 1, offset_y))
                 dy = ring_mask.overlap_area(player_mask, (offset_x, offset_y + 1)) - ring_mask.overlap_area(player_mask, (offset_x, offset_y - 1))
-                # self.player_ball.position.x = 
-                # self.player_ball.position.y = 
-                self.player_ball.direction.x *= -1 + dx
-                self.player_ball.direction.y *= -1 + dy
-                # to_center_x = self.position.distance_to((CENTER.x, 0))
-                # to_center_y = self.position.distance_to((0, CENTER.y))
         else:
-            self.player_ball.direction *= -1
-            self.player_ball.rect = self.player_ball.prev_rect
+            self.player_ball.velocity *= -1      
+        
+            
         self.player_ball.update(self.dt)
         self.inner_ring.update()
     
