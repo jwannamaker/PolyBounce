@@ -74,7 +74,7 @@ class Ball(pygame.sprite.Sprite):
                     pass
             
     
-    def update(self, dt):
+    def update(self):
         self.prev_position = self.position.copy()
         
         # Applying any user input for movement 
@@ -104,10 +104,10 @@ class Ball(pygame.sprite.Sprite):
             self.velocity.y *= -0.9
         
         
-        self.velocity += self.acceleration * dt
-        self.position.x += self.velocity.x * dt
+        self.velocity += self.acceleration
+        self.position.x += self.velocity.x
         self.collision('horizontal')    # Detect collision along x-axis
-        self.position.y += self.velocity.y * dt
+        self.position.y += self.velocity.y
         self.collision('vertical')      # Detect collision along y-axis
         self.rect.topleft = self.position - Vector2(self.radius)
         

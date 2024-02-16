@@ -30,8 +30,10 @@ class PolyBounce:
         # game objects setup
         self.player_ball = Ball(10)
         self.player_group = pygame.sprite.RenderClear(self.player_ball)
+        
         self.inner_ring = Polygon(200, 5)
         self.ring_group = pygame.sprite.RenderClear(self.inner_ring)
+        self.player_ball.add_ring(self.inner_ring)
         
         self.running = False
     
@@ -107,7 +109,7 @@ class PolyBounce:
                 # self.player_ball.position.x += dx
                 # self.player_ball.position.y += dy
             
-        self.player_ball.update(self.dt)
+        self.player_ball.update()
         self.inner_ring.update()
     
     def update_game_state(self):
