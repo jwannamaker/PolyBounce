@@ -25,6 +25,13 @@ class Ball(pygame.sprite.Sprite):
         self.rect.topleft = self.position - Vector2(self.radius)
         
         self.mask = pygame.mask.from_surface(self.image)
+        self.ring_group = pygame.sprite.Group()
+        
+    def set_ring_group(self, group):
+        self.ring_group = group
+    
+    def add_ring(self, ring):
+        self.ring_group.add(ring)
         
     def draw(self, surface):
         '''
@@ -43,8 +50,29 @@ class Ball(pygame.sprite.Sprite):
         distance = self.position.distance_to(other.position)
         return distance <= self.radius + other.radius
     
-    def collision(self, other):
-        if 
+    def collision(self, type):
+        # collision_sprites = pygame.sprite.spritecollide(self, self.ring_group, False, pygame.sprite.collide_circle)
+        collision_sprites = pygame.sprite.spritecollide(self, self.ring_group, False, pygame.sprite.collide_mask)
+        if collision_sprites:
+            for sprite in collision_sprites:
+                offset_x = self.rect.topleft[0] - sprite.rect.topleft[0]
+                offset_y = self.rect.topleft[1] - sprite.rect.topleft[1]
+                overlap = sprite.mask.overlap(self.mask, (offset_x, offset_y))
+                print('Overlap:', overlap)
+                if type == 'horizontal':
+                    # Collision is on the right
+                    
+                
+                    # Collision is on the left
+                    pass
+                    
+                if type == 'vertical':
+                    # Collision is on the top
+                    pass
+                
+                    # Collision is on the bottom
+                    pass
+            
     
     def update(self, dt):
         self.prev_position = self.position.copy()
@@ -78,9 +106,9 @@ class Ball(pygame.sprite.Sprite):
         
         self.velocity += self.acceleration * dt
         self.position.x += self.velocity.x * dt
-        # TODO Detect collision along x-axis
+        self.collision('horizontal')    # Detect collision along x-axis
         self.position.y += self.velocity.y * dt
-        # TODO Detect collision alone y-axis
+        self.collision('vertical')      # Detect collision along y-axis
         self.rect.topleft = self.position - Vector2(self.radius)
         
     def get_slope(self):
