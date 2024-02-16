@@ -10,9 +10,9 @@ class Ball(pygame.sprite.Sprite):
         self.color = color
         self.position = Vector2(CENTER)
         
-        self.speed = Vector2(20, 20)
-        self.direction = Vector2(0, 10)
-        # self.acceleration = Vector2(GRAVITY)
+        self.speed = Vector2(0, 0)
+        self.direction = Vector2(0, 1)
+        self.acceleration = Vector2(GRAVITY)
         
         self.keys_held = []
         
@@ -54,6 +54,7 @@ class Ball(pygame.sprite.Sprite):
     def update(self, dt):
         self.prev_rect = self.rect.copy()
         
+        self.speed += self.acceleration * dt
         # Applying any user input for movement 
         if self.keys_held.count('left'):
             self.speed.x += 1
