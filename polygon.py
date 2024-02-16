@@ -32,7 +32,6 @@ class PolySegment(pygame.sprite.Sprite):
         normal = unit_z_vector.cross(side_vector)
         print('Side vector:', side_vector, '; Normal Vector:', normal)
         return normal
-    
 
 class Polygon(pygame.sprite.Sprite):
     '''Polygon ring rotates using  Q (counterclockwise) and E (clockwise).

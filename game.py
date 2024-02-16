@@ -93,8 +93,9 @@ class PolyBounce:
     
     def process_game_logic(self):
         # Checks if the player ball is currently inside of the inscribed circle of the ring
-        # if pygame.sprite.spritecollide(self.player_ball, self.ring_group, False, pygame.sprite.collide_circle):
-            
+        # if pygame.sprite.spritecollide(self.player_ball, self.ring_group, False, pygame.sprite.collide_mask):
+        #     if self.player_ball.position != CENTER:
+        #         self.player_ball.velocity *= -1
             # player_mask = self.player_ball.mask
             # ring_mask = self.inner_ring.mask
             # offset_x = self.player_ball.rect.topleft[0] - self.inner_ring.rect.topleft[0]

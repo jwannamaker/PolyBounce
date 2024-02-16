@@ -9,8 +9,8 @@ class Ball(pygame.sprite.Sprite):
         self.radius = radius
         self.color = color
         self.position = Vector2(CENTER)
+        self.prev_position = Vector2(self.position)
         
-        self.direction = Vector2(0, 1)
         self.velocity = Vector2(0, 0)
         self.acceleration = Vector2(GRAVITY)
         
@@ -23,7 +23,6 @@ class Ball(pygame.sprite.Sprite):
         pygame.draw.circle(self.image, self.color, [self.radius, self.radius], self.radius)
         self.rect = self.image.get_rect()
         self.rect.topleft = self.position - Vector2(self.radius)
-        self.prev_rect = self.rect.copy()
         
         self.mask = pygame.mask.from_surface(self.image)
         
@@ -36,33 +35,29 @@ class Ball(pygame.sprite.Sprite):
         self.rect.topleft = self.position - Vector2(self.radius)
         surface.blit(self.image, self.rect.topleft) 
         
-    def move_x(self, dx):
-        self.position.x += dx
-        
-    def move_y(self, dy):
-        self.position.y -= dy
-        
-    # def collides_with(self, other):
-        # '''
-        #     Returns True is the distance from the center of the ball to the center 
-        #     of the other object is less than or equal to the sum of their radii.
-        # '''
-        # distance = self.position.distance_to(other.position)
-        # return distance <= self.radius + other.radius
-        # return pygame.sprite.collide_mask(self, other)
+    def collides_with(self, other):
+        '''
+            Returns True is the distance from the center of the ball to the center 
+            of the other object is less than or equal to the sum of their radii.
+        '''
+        distance = self.position.distance_to(other.position)
+        return distance <= self.radius + other.radius
+    
+    def collision(self, other):
+        if 
     
     def update(self, dt):
-        self.prev_rect = self.rect.copy()
+        self.prev_position = self.position.copy()
         
         # Applying any user input for movement 
         if self.keys_held.count('left'):
-            self.velocity.x += 1
-        if self.keys_held.count('right'):
             self.velocity.x -= 1
+        if self.keys_held.count('right'):
+            self.velocity.x += 1
             
-        # Checking if hit left wall, correct position to be within the wall and bounce off
+        # Checking if hit left wall 
         if self.position.x - self.radius < 0:
-            self.position.x = self.radius
+            self.position.x = self.radius # Correct position to be within the wall and then bounce off
             self.velocity.x *= -0.2    # Negative to reverse direction, < 1 to simulate loss of momentum
             
         # Checking if hit right wall
@@ -80,12 +75,22 @@ class Ball(pygame.sprite.Sprite):
             self.position.y = SCREEN_SIZE.y - self.radius
             self.velocity.y *= -0.9
         
-        if self.direction.magnitude() != 0:
-            self.direction.normalize_ip()
+        
         self.velocity += self.acceleration * dt
-        self.position.x += self.direction.x * self.velocity.x * dt
-        self.position.y += self.direction.y * self.velocity.y * dt
+        self.position.x += self.velocity.x * dt
+        # TODO Detect collision along x-axis
+        self.position.y += self.velocity.y * dt
+        # TODO Detect collision alone y-axis
         self.rect.topleft = self.position - Vector2(self.radius)
+        
+    def get_slope(self):
+        '''
+            Return the slope of the ball, from the previous position and the 
+            curernt one
+        '''
+        dx = self.position.x - self.prev_position.x
+        dy = self.position.y - self.prev_position.y
+        return Vector2(dx, dy)
         
     def add_key_held(self, key):
         self.keys_held.append(key)
