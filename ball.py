@@ -4,16 +4,12 @@
 from utils import *
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, radius, color=random.choice(list(PALLETE.values()))):
+    def __init__(self, radius, ring_group, color=random.choice(list(PALLETE.values()))):
         super().__init__()
         self.radius = radius
         self.color = color
-        self.position = Vector2(CENTER)
-        self.prev_position = Vector2(self.position)
-        
+        self.position = CENTER.copy()
         self.velocity = Vector2(0, 0)
-        self.acceleration = Vector2(GRAVITY)
-        
         self.keys_held = []
         
         self.image = pygame.Surface((self.radius * 2, self.radius * 2))
@@ -23,32 +19,10 @@ class Ball(pygame.sprite.Sprite):
         pygame.draw.circle(self.image, self.color, [self.radius, self.radius], self.radius)
         self.rect = self.image.get_rect()
         self.rect.topleft = self.position - Vector2(self.radius)
+        self.prev_rect = self.rect.copy()
         
+        self.ring_group = ring_group
         self.mask = pygame.mask.from_surface(self.image)
-        self.ring_group = pygame.sprite.Group()
-        
-    def set_ring_group(self, group):
-        self.ring_group = group
-    
-    def add_ring(self, ring):
-        self.ring_group.add(ring)
-        
-    def draw(self, surface):
-        '''
-            Draws the ball on the specified surface by first calculating where 
-            the topleft is positioned. Necessary because .blit() takes the 
-            topleft as the second argument.
-        '''
-        self.rect.topleft = self.position - Vector2(self.radius)
-        surface.blit(self.image, self.rect.topleft) 
-        
-    def collides_with(self, other):
-        '''
-            Returns True is the distance from the center of the ball to the center 
-            of the other object is less than or equal to the sum of their radii.
-        '''
-        distance = self.position.distance_to(other.position)
-        return distance <= self.radius + other.radius
     
     def collision(self, type):
         # collision_sprites = pygame.sprite.spritecollide(self, self.ring_group, False, pygame.sprite.collide_circle)
@@ -62,35 +36,47 @@ class Ball(pygame.sprite.Sprite):
                 # Convert the overlap coordinate into a coordinate on the screen
                 collision_x = overlap[0] + sprite.rect.topleft[0]
                 collision_y = overlap[1] + sprite.rect.topleft[1]
-                collision_coord = Vector2(collision_x, collision_y)
-                print('Collision Site:', collision_coord)
-                print('Ball Position:', self.position)
                 if type == 'horizontal':
                     # Collision is on the right
-                    
-                
+                    if self.rect.right >= collision_x and self.prev_rect.right <= collision_x:
+                        self.position.x = collision_x - self.radius
+                        self.rect.right = collision_x
+                        self.velocity.x *= -1
+                        
                     # Collision is on the left
-                    pass
+                    if self.rect.left <= collision_x and self.prev_rect.left >= collision_x:
+                        self.position.x = collision_x + self.radius
+                        self.rect.left = collision_x
+                        self.velocity.x *= -1
                     
                 if type == 'vertical':
-                    # Collision is on the top
-                    pass
-                
                     # Collision is on the bottom
-                    pass
-            
+                    if self.rect.bottom >= collision_y and self.prev_rect.bottom <= collision_y:
+                        self.position.y = collision_y - self.radius
+                        self.rect.bottom = collision_y
+                        self.velocity.y *= -1
+                
+                    # Collision is on the top
+                    if self.rect.top <= collision_y and self.prev_rect.top >= collision_y:
+                        self.position.y = collision_y + self.radius
+                        self.rect.top = collision_y
+                        self.velocity.y *= -1
     
     def update(self):
-        self.prev_position = self.position.copy()
+        self.prev_rect = self.rect.copy()
         
         # Applying any user input for movement 
         if self.keys_held.count('left'):
-            self.velocity.x -= 1
+            self.velocity.x -= 0.5
         if self.keys_held.count('right'):
-            self.velocity.x += 1
+            self.velocity.x += 0.5
+        if self.keys_held.count('up'):
+            self.velocity.y -= 0.5
+        if self.keys_held.count('down'):
+            self.velocity.y += 0.5
             
         # Checking if hit left wall 
-        if self.position.x - self.radius < 0:
+        if self.position.x - self.radius <= 0:
             self.position.x = self.radius # Correct position to be within the wall and then bounce off
             self.velocity.x *= -0.2    # Negative to reverse direction, < 1 to simulate loss of momentum
             
@@ -100,7 +86,7 @@ class Ball(pygame.sprite.Sprite):
             self.velocity.x *= -0.2    # Bounce off with a dampening effect
             
         # Checking if hit top wall
-        if self.position.y - self.radius < 0:
+        if self.position.y - self.radius <= 0:
             self.position.y = self.radius
             self.velocity.y *= -0.9
 
@@ -108,14 +94,23 @@ class Ball(pygame.sprite.Sprite):
         if self.position.y + self.radius >= SCREEN_SIZE.y:
             self.position.y = SCREEN_SIZE.y - self.radius
             self.velocity.y *= -0.9
-        
-        
-        self.velocity += self.acceleration
-        self.position.x += self.velocity.x
-        self.collision('horizontal')    # Detect collision along x-axis
-        self.position.y += self.velocity.y
-        self.collision('vertical')      # Detect collision along y-axis
+            
         self.rect.topleft = self.position - Vector2(self.radius)
+        
+        self.collision('horizontal')    # Detect collision along x-axis
+        self.position.x += self.velocity.x
+        
+        self.collision('vertical')      # Detect collision along y-axis
+        self.position.y += self.velocity.y
+        
+        
+    def draw(self, surface):
+        '''
+            Draws the ball on the specified surface by first calculating where 
+            the topleft is positioned. Necessary because .blit() takes the 
+            topleft as the second argument.
+        '''
+        surface.blit(self.image, self.rect.topleft) 
         
     def get_slope(self):
         '''

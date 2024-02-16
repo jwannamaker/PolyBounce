@@ -1,7 +1,7 @@
 import pygame
 from utils import *
 
-
+"""
 class PolySegment(pygame.sprite.Sprite):
     '''
         Represents a segment of a polygon. Helps the collision detection, amongst
@@ -21,7 +21,7 @@ class PolySegment(pygame.sprite.Sprite):
     def draw(self, surface):
         pygame.draw.line(surface, self.color, self.start, self.end, self.thickness)
         points = [self.end, (surface.get_rect().centerx, surface.get_rect().centery), self.start]
-        pygame.draw.aalines(surface, PALLETE['white'], True, points)
+        pygame.draw.lines(surface, PALLETE['white'], True, points, self.thickness)
         
     def get_length(self):
         return self.start.distance_to(self.end)
@@ -32,6 +32,7 @@ class PolySegment(pygame.sprite.Sprite):
         normal = unit_z_vector.cross(side_vector)
         print('Side vector:', side_vector, '; Normal Vector:', normal)
         return normal
+"""
 
 class Polygon(pygame.sprite.Sprite):
     '''Polygon ring rotates using  Q (counterclockwise) and E (clockwise).
@@ -40,27 +41,27 @@ class Polygon(pygame.sprite.Sprite):
         pygame (pygame.sprite.Sprite): base class
     '''
     
-    def __init__(self, radius, N, color=random.choice(list(PALLETE.values()))):
+    def __init__(self, radius, N, wall_thickness = 20, color = random.choice(list(PALLETE.values()))):
         super().__init__()
         self.radius = radius    
         self.color = color
+        self.wall_thickness = wall_thickness
         self.position = Vector2(CENTER)
         self.N = N                  # number of sides
-        
+
         # self.active = False     # active ==> ball currently inside
         # self.keys_held = []
         
         self.theta = self.get_theta()
-        self.vertices = self.get_vertices()
+        self.vertices = self.get_vertices(self.radius)
+        self.inner_vertices = self.get_vertices(self.radius - self.wall_thickness)
         self.image = pygame.Surface((self.radius * 2, self.radius * 2))
         self.image.fill((0, 0, 0))
+        self.draw_ring()
         self.image.set_colorkey((0, 0, 0))
         
-        self.segments = []
-        self.draw_lines()
-        self.rect = self.image.get_rect(center = self.position) 
-        self.prev_rect = self.rect.copy()   # stores previous frame position info
-        
+        self.rect = self.image.get_rect() 
+        self.rect.center = self.position
         # get the surface from the area bounded by the shape for the mask
         self.mask = pygame.mask.from_surface(self.image)  
     
@@ -72,30 +73,17 @@ class Polygon(pygame.sprite.Sprite):
         '''
         return (2 * np.pi) / self.N
     
-    def get_vertices(self):
+    def get_vertices(self, radius, tilt = 1.5 * np.pi):
         vertices = []
-        for i in range(self.N):
-            theta = i * self.theta
-            x = (self.radius * np.cos(theta)) + self.radius
-            y = (self.radius * np.sin(theta)) + self.radius
+        for i in range(1, self.N + 1):
+            x = (radius * np.cos(tilt + self.theta * i)) + self.radius
+            y = (radius * np.sin(tilt + self.theta * i)) + self.radius
             vertices.append(Vector2(x, y))
         return vertices
         
-    def draw_lines(self):
-        for i in range(0, len(self.vertices)):
-            start = self.vertices[i]
-            end = self.vertices[i + 1] if i + 1 < len(self.vertices) else self.vertices[0]
-            segment = PolySegment(start, end, random.choice(list(RING_PALLETE.values())))
-            segment.draw(self.image)
-            self.segments.append(segment)
-        self.mask = pygame.mask.from_surface(self.image)
-    
-    # def get_vectors(self):
-    #     vectors = []
-    #     for p in self.vertices:
-    #         pygame.
-    #         vectors.append(self.position.astype(float), p)
-    #     return vectors
+    def draw_ring(self):
+        pygame.draw.polygon(self.image, random.choice(list(RING_PALLETE.values())), self.vertices)
+        pygame.draw.polygon(self.image, (0, 0, 0), self.inner_vertices)
     
     def draw(self, surface):
         blit_position = self.position - Vector2(self.radius)

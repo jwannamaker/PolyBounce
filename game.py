@@ -25,24 +25,33 @@ class PolyBounce:
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.background.fill(BACKGROUND_PALLETE['black'])
         self.screen.blit(self.background, (0, 0))
-        pygame.display.flip()
+        self.running = False
         
         # game objects setup
-        self.player_ball = Ball(10)
+        self.inner_ring = Polygon(350, 6)
+        # self.outer_ring = Polygon(250, 6)
+        # self.outer_outer_ring = Polygon(300, 6)
+        self.ring_group = pygame.sprite.Group(self.inner_ring)
+        
+        self.player_ball = Ball(20, self.ring_group)
         self.player_group = pygame.sprite.RenderClear(self.player_ball)
         
-        self.inner_ring = Polygon(200, 5)
-        self.ring_group = pygame.sprite.RenderClear(self.inner_ring)
-        self.player_ball.add_ring(self.inner_ring)
-        
-        self.running = False
-    
     def start(self):
         self.running = True
         self.main_loop()
     
     def set_fps(self, fps):
         self.fps = fps
+        
+    def display_stats(self):
+        player_info = []
+        player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Position', self.player_ball.position[0], self.player_ball.position[1]))
+        player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Velocity', self.player_ball.velocity[0], self.player_ball.velocity[1]))
+        
+        # TODO Make some fancy display rect for the text to go onto and then blit that onto the screen
+        
+        for i, line in enumerate(player_info):
+            self.screen.blit(self.font.render(line, True, PALLETE['white']), (0, SCREEN_SIZE.y - 40 + 20 * i))
     
     def handle_user_input(self):
         '''
@@ -110,7 +119,7 @@ class PolyBounce:
                 # self.player_ball.position.y += dy
             
         self.player_ball.update()
-        self.inner_ring.update()
+        self.ring_group.update()
     
     def update_game_state(self):
         '''
@@ -118,10 +127,11 @@ class PolyBounce:
         '''
         self.screen.blit(self.background, (0, 0))
         # drawing some lines for the purpose of debugging/analyzing output values
-        pygame.draw.line(self.screen, (255, 0, 0), (self.player_ball.position.x, 0), (self.player_ball.position.x, SCREEN_SIZE.y))
-        pygame.draw.line(self.screen, (255, 0, 0), (0, self.player_ball.position.y), (SCREEN_SIZE.x, self.player_ball.position.y))
+        # pygame.draw.line(self.screen, (255, 0, 0), (self.player_ball.position.x, 0), (self.player_ball.position.x, SCREEN_SIZE.y))
+        # pygame.draw.line(self.screen, (255, 0, 0), (0, self.player_ball.position.y), (SCREEN_SIZE.x, self.player_ball.position.y))
+        self.display_stats()
         self.player_ball.draw(self.screen)
-        self.inner_ring.draw(self.screen)
+        self.ring_group.draw(self.screen)
         self.dt = self.clock.tick(self.fps) / 1000
         pygame.display.flip()
         
