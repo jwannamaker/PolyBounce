@@ -29,9 +29,9 @@ class Polygon(pygame.sprite.Sprite):
         pygame (pygame.sprite.Sprite): base class
     '''
     
-    def __init__(self, outer_radius, N, color=random.choice(list(PALLETE.values()))):
+    def __init__(self, radius, N, color=random.choice(list(PALLETE.values()))):
         super().__init__()
-        self.outer_radius = outer_radius    
+        self.radius = radius    
         self.color = color
         self.position = Vector2(CENTER)
         self.N = N              # number of sides
@@ -40,9 +40,9 @@ class Polygon(pygame.sprite.Sprite):
         # self.keys_held = []
         
         self.theta = self.get_theta()
-        self.radius = self.get_inradius()
+        # self.radius = self.get_inradius()
         self.vertices = self.get_vertices()
-        self.image = pygame.Surface((self.outer_radius * 2, self.outer_radius * 2))
+        self.image = pygame.Surface((self.radius * 2, self.radius * 2))
         self.image.fill((0, 0, 0))
         self.image.set_colorkey((0, 0, 0))
         # pygame.draw.lines(self.image, self.color, True, self.vertices, 3)
@@ -66,14 +66,14 @@ class Polygon(pygame.sprite.Sprite):
             Returns the apothem of this regular polygon, which is the same as the 
             radius of the largest possible inscribed circle.
         '''
-        return self.outer_radius * np.cos(self.theta)
+        return self.radius * np.cos(self.theta)
     
     def get_vertices(self):
         vertices = []
         for i in range(self.N):
             theta = i * self.theta
-            x = (self.outer_radius * np.cos(theta)) + self.outer_radius
-            y = (self.outer_radius * np.sin(theta)) + self.outer_radius
+            x = (self.radius * np.cos(theta)) + self.radius
+            y = (self.radius * np.sin(theta)) + self.radius
             vertices.append(np.array((x, y)))
         return vertices
         
@@ -95,7 +95,7 @@ class Polygon(pygame.sprite.Sprite):
     #     return vectors
     
     def draw(self, surface):
-        blit_position = self.position - Vector2(self.outer_radius)
+        blit_position = self.position - Vector2(self.radius)
         surface.blit(self.image, blit_position)
         
     def update(self):

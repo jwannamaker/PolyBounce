@@ -14,7 +14,7 @@ DATA_DIR = os.path.join(MAIN_DIR, 'data')
 SCREEN_SIZE = Vector2(1280, 720)
 CENTER = Vector2(SCREEN_SIZE // 2)
 
-GRAVITY = Vector2(0, 5)
+GRAVITY = Vector2(0, 10)
 
 RING_PADDING = 50
 RING_SIDES = {

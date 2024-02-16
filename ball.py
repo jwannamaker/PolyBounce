@@ -10,8 +10,8 @@ class Ball(pygame.sprite.Sprite):
         self.color = color
         self.position = Vector2(CENTER)
         
-        self.speed = Vector2(0, 0)
         self.direction = Vector2(0, 1)
+        self.velocity = Vector2(0, 0)
         self.acceleration = Vector2(GRAVITY)
         
         self.keys_held = []
@@ -54,12 +54,12 @@ class Ball(pygame.sprite.Sprite):
     def update(self, dt):
         self.prev_rect = self.rect.copy()
         
-        self.speed += self.acceleration * dt
+        self.velocity += self.acceleration * dt
         # Applying any user input for movement 
         if self.keys_held.count('left'):
-            self.speed.x += 1
+            self.direction.x += 1
         if self.keys_held.count('right'):
-            self.speed.x -= 1
+            self.direction.x -= 1
             
         # Checking if hit left wall, correct position to be within the wall and bounce off
         if self.position.x - self.radius < 0:
@@ -83,8 +83,8 @@ class Ball(pygame.sprite.Sprite):
         
         if self.direction.magnitude() != 0:
             self.direction.normalize_ip()
-        self.position.x += self.direction.x * self.speed.x * dt
-        self.position.y += self.direction.y * self.speed.y * dt
+        self.position.x += self.direction.x * self.velocity.x * dt
+        self.position.y += self.direction.y * self.velocity.y * dt
         self.rect.topleft = self.position - Vector2(self.radius)
         
     def add_key_held(self, key):
