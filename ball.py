@@ -58,7 +58,13 @@ class Ball(pygame.sprite.Sprite):
                 offset_x = self.rect.topleft[0] - sprite.rect.topleft[0]
                 offset_y = self.rect.topleft[1] - sprite.rect.topleft[1]
                 overlap = sprite.mask.overlap(self.mask, (offset_x, offset_y))
-                print('Overlap:', overlap)
+                
+                # Convert the overlap coordinate into a coordinate on the screen
+                collision_x = overlap[0] + sprite.rect.topleft[0]
+                collision_y = overlap[1] + sprite.rect.topleft[1]
+                collision_coord = Vector2(collision_x, collision_y)
+                print('Collision Site:', collision_coord)
+                print('Ball Position:', self.position)
                 if type == 'horizontal':
                     # Collision is on the right
                     
