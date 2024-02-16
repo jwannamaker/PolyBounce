@@ -54,35 +54,35 @@ class Ball(pygame.sprite.Sprite):
     def update(self, dt):
         self.prev_rect = self.rect.copy()
         
-        self.velocity += self.acceleration * dt
         # Applying any user input for movement 
         if self.keys_held.count('left'):
-            self.velocity.x *= 1.1
+            self.velocity.x += 1
         if self.keys_held.count('right'):
-            self.velocity.x *= -1.1
+            self.velocity.x -= 1
             
         # Checking if hit left wall, correct position to be within the wall and bounce off
         if self.position.x - self.radius < 0:
             self.position.x = self.radius
-            self.direction.x *= -0.2    # Negative to reverse direction, < 1 to simulate loss of momentum
+            self.velocity.x *= -0.2    # Negative to reverse direction, < 1 to simulate loss of momentum
             
         # Checking if hit right wall
         if self.position.x + self.radius >= SCREEN_SIZE.x:
             self.position.x = SCREEN_SIZE.x - self.radius
-            self.direction.x *= -0.2    # Bounce off with a dampening effect
+            self.velocity.x *= -0.2    # Bounce off with a dampening effect
             
         # Checking if hit top wall
         if self.position.y - self.radius < 0:
             self.position.y = self.radius
-            self.direction.y *= -0.9
+            self.velocity.y *= -0.9
 
         # Checking if hit bottom wall
         if self.position.y + self.radius >= SCREEN_SIZE.y:
             self.position.y = SCREEN_SIZE.y - self.radius
-            self.direction.y *= -0.9
+            self.velocity.y *= -0.9
         
         if self.direction.magnitude() != 0:
             self.direction.normalize_ip()
+        self.velocity += self.acceleration * dt
         self.position.x += self.direction.x * self.velocity.x * dt
         self.position.y += self.direction.y * self.velocity.y * dt
         self.rect.topleft = self.position - Vector2(self.radius)

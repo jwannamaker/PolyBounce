@@ -6,7 +6,7 @@ import os
 import random
 import pygame
 import numpy as np
-from pygame import Vector2
+from pygame import Vector2, Vector3
 
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, 'data')

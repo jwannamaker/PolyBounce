@@ -1,25 +1,39 @@
 import pygame
 from utils import *
 
-class Line(pygame.sprite.Sprite):
+
+class PolySegment(pygame.sprite.Sprite):
     '''
-        Represents a line for the side of a Polygon
+        Represents a segment of a polygon. Helps the collision detection, amongst
+        many other things.
+        
+        Requirements: Return some way to determine the slope of the line that 
+        the ball has collided with
     '''
-    def __init__(self, start, end, image, color, thickness=3):
+    def __init__(self, start, end, color, thickness = 3):
         super().__init__()
+        
         self.start = Vector2(start)
         self.end = Vector2(end)
-        
-        self.thickness = thickness
         self.color = color
+        self.thickness = thickness
         
-        self.length = self.get_length()
-        self.rect = pygame.draw.line(image, self.color, self.start, self.end, self.thickness)
-        
+    def draw(self, poly_center, surface):
+        pygame.draw.line(surface, self.color, self.start, self.end, self.thickness)
+        x_pos = surface.get_rect().width // 2
+        y_pos = surface.get_rect().height // 2
+        points = [self.end, Vector2(x_pos, y_pos), self.start]
+        pygame.draw.aalines(surface, PALLETE['white'], True, points)
         
     def get_length(self):
         return self.start.distance_to(self.end)
     
+    def get_normal(self):
+        unit_z_vector = Vector3(0, 0, 1)
+        side_vector = Vector3(self.end.x - self.start.x, self.end.y - self.start.y, 0)
+        normal = unit_z_vector.cross(side_vector)
+        print('Side vector:', side_vector, '; Normal Vector:', normal)
+        return normal
     
 
 class Polygon(pygame.sprite.Sprite):
@@ -34,19 +48,19 @@ class Polygon(pygame.sprite.Sprite):
         self.radius = radius    
         self.color = color
         self.position = Vector2(CENTER)
-        self.N = N              # number of sides
+        self.N = N                  # number of sides
         
         # self.active = False     # active ==> ball currently inside
         # self.keys_held = []
         
         self.theta = self.get_theta()
-        # self.radius = self.get_inradius()
         self.vertices = self.get_vertices()
         self.image = pygame.Surface((self.radius * 2, self.radius * 2))
         self.image.fill((0, 0, 0))
         self.image.set_colorkey((0, 0, 0))
-        # pygame.draw.lines(self.image, self.color, True, self.vertices, 3)
-        self.sides = self.draw_lines()
+        
+        self.segments = []
+        self.draw_lines()
         self.rect = self.image.get_rect(center = self.position) 
         self.prev_rect = self.rect.copy()   # stores previous frame position info
         
@@ -61,31 +75,23 @@ class Polygon(pygame.sprite.Sprite):
         '''
         return (2 * np.pi) / self.N
     
-    def get_inradius(self):
-        '''
-            Returns the apothem of this regular polygon, which is the same as the 
-            radius of the largest possible inscribed circle.
-        '''
-        return self.radius * np.cos(self.theta)
-    
     def get_vertices(self):
         vertices = []
         for i in range(self.N):
             theta = i * self.theta
             x = (self.radius * np.cos(theta)) + self.radius
             y = (self.radius * np.sin(theta)) + self.radius
-            vertices.append(np.array((x, y)))
+            vertices.append(Vector2(x, y))
         return vertices
         
     def draw_lines(self):
-        lines = []
         for i in range(0, len(self.vertices)):
             start = self.vertices[i]
             end = self.vertices[i + 1] if i + 1 < len(self.vertices) else self.vertices[0]
-            pygame.draw.line(self.image, random.choice(list(RING_PALLETE.values())), start, end, 2)
-            lines.append([start, end])
+            segment = PolySegment(start, end, random.choice(list(RING_PALLETE.values())))
+            segment.draw(self.position, self.image)
+            self.segments.append(segment)
         self.mask = pygame.mask.from_surface(self.image)
-        return lines
     
     # def get_vectors(self):
     #     vectors = []
