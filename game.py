@@ -93,19 +93,18 @@ class PolyBounce:
     
     def process_game_logic(self):
         # Checks if the player ball is currently inside of the inscribed circle of the ring
-        if pygame.sprite.spritecollide(self.player_ball, self.ring_group, False, pygame.sprite.collide_circle):
+        # if pygame.sprite.spritecollide(self.player_ball, self.ring_group, False, pygame.sprite.collide_circle):
             
-            player_mask = self.player_ball.mask
-            ring_mask = self.inner_ring.mask
-            offset_x = self.player_ball.rect.topleft[0] - self.inner_ring.rect.topleft[0]
-            offset_y = self.player_ball.rect.topleft[1] - self.inner_ring.rect.topleft[1]
-            
-            overlap_amount = ring_mask.overlap_area(player_mask, (offset_x, offset_y))
-            if overlap_amount >= 1:
-                dx = ring_mask.overlap_area(player_mask, (offset_x + 1, offset_y)) - ring_mask.overlap_area(player_mask, (offset_x - 1, offset_y))
-                dy = ring_mask.overlap_area(player_mask, (offset_x, offset_y + 1)) - ring_mask.overlap_area(player_mask, (offset_x, offset_y - 1))     
-                self.player_ball.position.x += dx
-                self.player_ball.position.y += dy
+            # player_mask = self.player_ball.mask
+            # ring_mask = self.inner_ring.mask
+            # offset_x = self.player_ball.rect.topleft[0] - self.inner_ring.rect.topleft[0]
+            # offset_y = self.player_ball.rect.topleft[1] - self.inner_ring.rect.topleft[1]
+            # overlap_amount = ring_mask.overlap_area(player_mask, (offset_x, offset_y))
+            # if overlap_amount >= 1:
+            #     dx = ring_mask.overlap_area(player_mask, (offset_x + 1, offset_y)) - ring_mask.overlap_area(player_mask, (offset_x - 1, offset_y))
+            #     dy = ring_mask.overlap_area(player_mask, (offset_x, offset_y + 1)) - ring_mask.overlap_area(player_mask, (offset_x, offset_y - 1))     
+                # self.player_ball.position.x += dx
+                # self.player_ball.position.y += dy
             
         self.player_ball.update(self.dt)
         self.inner_ring.update()
@@ -115,6 +114,9 @@ class PolyBounce:
             Draw the new state of each object in the game onto the screen.
         '''
         self.screen.blit(self.background, (0, 0))
+        # drawing some lines for the purpose of debugging/analyzing output values
+        pygame.draw.line(self.screen, (255, 0, 0), (self.player_ball.position.x, 0), (self.player_ball.position.x, SCREEN_SIZE.y))
+        pygame.draw.line(self.screen, (255, 0, 0), (0, self.player_ball.position.y), (SCREEN_SIZE.x, self.player_ball.position.y))
         self.player_ball.draw(self.screen)
         self.inner_ring.draw(self.screen)
         self.dt = self.clock.tick(self.fps) / 1000

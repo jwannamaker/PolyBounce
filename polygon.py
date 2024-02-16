@@ -18,11 +18,9 @@ class PolySegment(pygame.sprite.Sprite):
         self.color = color
         self.thickness = thickness
         
-    def draw(self, poly_center, surface):
+    def draw(self, surface):
         pygame.draw.line(surface, self.color, self.start, self.end, self.thickness)
-        x_pos = surface.get_rect().width // 2
-        y_pos = surface.get_rect().height // 2
-        points = [self.end, Vector2(x_pos, y_pos), self.start]
+        points = [self.end, (surface.get_rect().centerx, surface.get_rect().centery), self.start]
         pygame.draw.aalines(surface, PALLETE['white'], True, points)
         
     def get_length(self):
@@ -89,7 +87,7 @@ class Polygon(pygame.sprite.Sprite):
             start = self.vertices[i]
             end = self.vertices[i + 1] if i + 1 < len(self.vertices) else self.vertices[0]
             segment = PolySegment(start, end, random.choice(list(RING_PALLETE.values())))
-            segment.draw(self.position, self.image)
+            segment.draw(self.image)
             self.segments.append(segment)
         self.mask = pygame.mask.from_surface(self.image)
     
