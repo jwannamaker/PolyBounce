@@ -15,6 +15,7 @@ class PolyBounce:
         pygame.display.set_caption('Johnny Tries Physics and Stuff!')
         self.clock = pygame.time.Clock()
         self.fps = 1
+        self.dt = 0
         
         # font setup
         pygame.font.init()
@@ -37,6 +38,9 @@ class PolyBounce:
     def start(self):
         self.running = True
         self.main_loop()
+    
+    def set_fps(self, fps):
+        self.fps = fps
     
     def handle_user_input(self):
         '''
@@ -88,7 +92,27 @@ class PolyBounce:
                     self.inner_ring.cw_rotate()
     
     def process_game_logic(self):
-        self.player_ball.update(self.inner_ring)
+        if pygame.sprite.spritecollide(self.player_ball, self.ring_group, False, pygame.sprite.collide_circle):
+            print('Collision Detected')
+            player_mask = self.player_ball.mask
+            ring_mask = self.inner_ring.mask
+            offset_x = self.player_ball.rect.topleft[0] - self.inner_ring.rect.topleft[0]
+            offset_y = self.player_ball.rect.topleft[1] - self.inner_ring.rect.topleft[1]
+            
+            overlap_amount = ring_mask.overlap_area(player_mask, (offset_x, offset_y))
+            if overlap_amount >= 1:
+                # Now that we have an overlap amount, we need to calculate the 
+                # normal of the collision by separating the overlap amount in the x 
+                # direction and the overlap amount in the y direction
+                # overlap = ring_mask.overlap(player_mask, (offset_x, offset_y))
+                dx = ring_mask.overlap_area(player_mask, (offset_x + 1, offset_y)) - ring_mask.overlap_area(player_mask, (offset_x - 1, offset_y))
+                dy = ring_mask.overlap_area(player_mask, (offset_x, offset_y + 1)) - ring_mask.overlap_area(player_mask, (offset_x, offset_y - 1))
+                # self.player_ball.position.x = 
+                # self.player_ball.position.y = 
+                
+                # to_center_x = self.position.distance_to((CENTER.x, 0))
+                # to_center_y = self.position.distance_to((0, CENTER.y))
+        self.player_ball.update(self.dt)
         self.inner_ring.update()
     
     def update_game_state(self):
@@ -98,7 +122,7 @@ class PolyBounce:
         self.screen.blit(self.background, (0, 0))
         self.player_ball.draw(self.screen)
         self.inner_ring.draw(self.screen)
-        dt = self.clock.tick(self.fps) / 1000
+        self.dt = self.clock.tick(self.fps) / 1000
         pygame.display.flip()
         
     def main_loop(self):
