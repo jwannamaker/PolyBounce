@@ -26,7 +26,6 @@ class Ball(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
     
     def collision(self, type):
-        # collision_sprites = pygame.sprite.spritecollide(self, self.ring_group, False, pygame.sprite.collide_circle)
         collision_sprites = pygame.sprite.spritecollide(self, self.ring_group, False, pygame.sprite.collide_mask)
         if collision_sprites:
             for sprite in collision_sprites:

@@ -65,10 +65,10 @@ def rotate_vector(angle, x, y):
     return np.matmul(((a, -b), (b, a)), (x, y))
 
 def get_slope(a, b):
-        '''
-            Return the normalized slope between point a and point b.
-        '''
-        dx = b.x - a.x
-        dy = b.y - a.y
-        slope = Vector2(dx, dy)
-        return slope
+    '''
+        Return the slope between point a and point b.
+    '''
+    dx = abs(b.x) - abs(a.x)  # Changed to return the absolute value of these differences
+    dy = abs(b.y) - abs(a.y)
+    slope = Vector2(dx, dy)
+    return slope

@@ -117,9 +117,9 @@ class PolyBounce:
                 # self.player_ball.position.y += dy
             
         self.player_ball.update()
-        self.ring_group.update()
+        # self.ring_group.update()
     
-    def update_game_state(self):
+    def draw(self):
         '''
             Draw the new state of each object in the game onto the screen.
         '''
@@ -137,5 +137,5 @@ class PolyBounce:
         while self.running:
             self.handle_user_input()
             self.process_game_logic()
-            self.update_game_state()
+            self.draw()
         pygame.quit()
