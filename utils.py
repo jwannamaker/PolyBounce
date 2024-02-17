@@ -63,3 +63,12 @@ def rotate_vector(angle, x, y):
     b = np.sin(angle)
     R = np.matrix((a, -b), (b, a))
     return np.matmul(((a, -b), (b, a)), (x, y))
+
+def get_slope(a, b):
+        '''
+            Return the normalized slope between point a and point b.
+        '''
+        dx = b.x - a.x
+        dy = b.y - a.y
+        slope = Vector2(dx, dy)
+        return slope

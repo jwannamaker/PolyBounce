@@ -97,10 +97,18 @@ class Polygon(pygame.sprite.Sprite):
             the passed point.
         '''
         distances = list(map(point.distance_to, self.inner_vertices))
-        distances_dict = dict(distances)
+        distances_dict = dict(zip(distances, self.inner_vertices))
         
-            
-            
+        # Get the shortest distance from the point to a vertex and remove from distances
+        closest_distance = min(distances_dict.keys())
+        closest_vertex = distances_dict.pop(closest_distance)
+        
+        # Get the next shortest distance from the point to the remaining vertices and remove from distances
+        next_distance = min(distances_dict.keys())
+        next_vertex = distances_dict.pop(next_distance)
+        
+        # Return the vector representing the slope of the closest side
+        return get_slope(Vector2(closest_vertex), Vector2(next_vertex))
     
     def update(self):
         # self.rect.x, self.rect.y = self.position.astype(int) - self.radius

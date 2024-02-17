@@ -61,11 +61,9 @@ class PolyBounce:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-                break
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                    break
                 if event.key == pygame.K_LSHIFT:
                     self.player_ball.add_key_held('boost')
                 
@@ -120,7 +118,6 @@ class PolyBounce:
             
         self.player_ball.update()
         self.ring_group.update()
-        self.inner_ring.get_closest_side(Vector2(0, 0))
     
     def update_game_state(self):
         '''
@@ -128,8 +125,8 @@ class PolyBounce:
         '''
         self.screen.blit(self.background, (0, 0))
         # drawing some lines for the purpose of debugging/analyzing output values
-        # pygame.draw.line(self.screen, (255, 0, 0), (self.player_ball.position.x, 0), (self.player_ball.position.x, SCREEN_SIZE.y))
-        # pygame.draw.line(self.screen, (255, 0, 0), (0, self.player_ball.position.y), (SCREEN_SIZE.x, self.player_ball.position.y))
+        pygame.draw.line(self.screen, (255, 0, 0), (self.player_ball.position.x, 0), (self.player_ball.position.x, SCREEN_SIZE.y))
+        pygame.draw.line(self.screen, (255, 0, 0), (0, self.player_ball.position.y), (SCREEN_SIZE.x, self.player_ball.position.y))
         self.display_stats()
         self.player_ball.draw(self.screen)
         self.ring_group.draw(self.screen)
