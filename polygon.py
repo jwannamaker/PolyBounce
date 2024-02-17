@@ -63,7 +63,7 @@ class Polygon(pygame.sprite.Sprite):
         self.rect = self.image.get_rect() 
         self.rect.center = self.position
         # get the surface from the area bounded by the shape for the mask
-        self.mask = pygame.mask.from_surface(self.image)  
+        self.mask = pygame.mask.from_surface(self.image)
     
     def get_theta(self):
         '''
@@ -88,7 +88,20 @@ class Polygon(pygame.sprite.Sprite):
     def draw(self, surface):
         blit_position = self.position - Vector2(self.radius)
         surface.blit(self.image, blit_position)
+    
+    
+    
+    def get_closest_side(self, point):
+        '''
+            Returns the two points from the inner vertices that are closest to 
+            the passed point.
+        '''
+        distances = list(map(point.distance_to, self.inner_vertices))
+        distances_dict = dict(distances)
         
+            
+            
+    
     def update(self):
         # self.rect.x, self.rect.y = self.position.astype(int) - self.radius
         # self.rect = pygame.draw.lines(self.image, self.color, True, self.vertices)

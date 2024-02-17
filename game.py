@@ -120,6 +120,7 @@ class PolyBounce:
             
         self.player_ball.update()
         self.ring_group.update()
+        self.inner_ring.get_closest_side(Vector2(0, 0))
     
     def update_game_state(self):
         '''
