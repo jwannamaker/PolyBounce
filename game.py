@@ -28,7 +28,7 @@ class PolyBounce:
         self.running = False
         
         # game objects setup
-        self.inner_ring = Polygon(350, 6)
+        self.inner_ring = Polygon(350, 5)
         # self.outer_ring = Polygon(250, 6)
         # self.outer_outer_ring = Polygon(300, 6)
         self.ring_group = pygame.sprite.Group(self.inner_ring)

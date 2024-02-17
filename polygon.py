@@ -41,7 +41,7 @@ class Polygon(pygame.sprite.Sprite):
         pygame (pygame.sprite.Sprite): base class
     '''
     
-    def __init__(self, radius, N, wall_thickness = 20, color = random.choice(list(PALLETE.values()))):
+    def __init__(self, radius, N, wall_thickness = 50, color = random.choice(list(PALLETE.values()))):
         super().__init__()
         self.radius = radius    
         self.color = color

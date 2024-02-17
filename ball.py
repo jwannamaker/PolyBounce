@@ -9,6 +9,7 @@ class Ball(pygame.sprite.Sprite):
         self.radius = radius
         self.color = color
         self.position = CENTER.copy()
+        self.prev_position = self.position.copy()
         self.velocity = Vector2(0, 0)
         self.keys_held = []
         
@@ -31,39 +32,41 @@ class Ball(pygame.sprite.Sprite):
             for sprite in collision_sprites:
                 offset_x = self.rect.topleft[0] - sprite.rect.topleft[0]
                 offset_y = self.rect.topleft[1] - sprite.rect.topleft[1]
-                overlap = sprite.mask.overlap(self.mask, (offset_x, offset_y))
+                relative = sprite.mask.overlap(self.mask, (offset_x, offset_y))
                 
                 # Convert the overlap coordinate into a coordinate on the screen
-                collision_x = overlap[0] + sprite.rect.topleft[0]
-                collision_y = overlap[1] + sprite.rect.topleft[1]
+                x = relative[0] + sprite.rect.topleft[0]
+                y = relative[1] + sprite.rect.topleft[1]
+                collision = Vector2(x, y)
                 if type == 'horizontal':
                     # Collision is on the right
-                    if self.rect.right >= collision_x and self.prev_rect.right <= collision_x:
-                        self.position.x = collision_x - self.radius
-                        self.rect.right = collision_x
+                    if self.rect.right >= collision.x and self.prev_rect.right <= collision.x:
+                        self.rect.right = collision.x
+                        self.position.x = collision.x + self.radius
                         self.velocity.x *= -1
                         
                     # Collision is on the left
-                    if self.rect.left <= collision_x and self.prev_rect.left >= collision_x:
-                        self.position.x = collision_x + self.radius
-                        self.rect.left = collision_x
+                    if self.rect.left <= collision.x and self.prev_rect.left >= collision.x:
+                        self.rect.left = collision.x
+                        self.position.x = collision.x + self.radius
                         self.velocity.x *= -1
                     
                 if type == 'vertical':
                     # Collision is on the bottom
-                    if self.rect.bottom >= collision_y and self.prev_rect.bottom <= collision_y:
-                        self.position.y = collision_y - self.radius
-                        self.rect.bottom = collision_y
+                    if self.rect.bottom >= collision.y and self.prev_rect.bottom <= collision.y:
+                        self.rect.bottom = collision.y
+                        self.position.y = collision.y - self.radius
                         self.velocity.y *= -1
                 
                     # Collision is on the top
-                    if self.rect.top <= collision_y and self.prev_rect.top >= collision_y:
-                        self.position.y = collision_y + self.radius
-                        self.rect.top = collision_y
+                    if self.rect.top <= collision.y and self.prev_rect.top >= collision.y:
+                        self.rect.top = collision.y
+                        self.position.y = collision.y + self.radius
                         self.velocity.y *= -1
     
     def update(self):
         self.prev_rect = self.rect.copy()
+        self.prev_position = self.position.copy()
         
         # Applying any user input for movement 
         if self.keys_held.count('left'):
@@ -74,6 +77,7 @@ class Ball(pygame.sprite.Sprite):
             self.velocity.y -= 0.5
         if self.keys_held.count('down'):
             self.velocity.y += 0.5
+        
             
         # Checking if hit left wall 
         if self.position.x - self.radius <= 0:
@@ -94,15 +98,15 @@ class Ball(pygame.sprite.Sprite):
         if self.position.y + self.radius >= SCREEN_SIZE.y:
             self.position.y = SCREEN_SIZE.y - self.radius
             self.velocity.y *= -0.9
-            
-        self.rect.topleft = self.position - Vector2(self.radius)
         
+        # self.velocity += self.acceleration
         self.collision('horizontal')    # Detect collision along x-axis
         self.position.x += self.velocity.x
         
         self.collision('vertical')      # Detect collision along y-axis
         self.position.y += self.velocity.y
         
+        self.rect.topleft = self.position - Vector2(self.radius)
         
     def draw(self, surface):
         '''
