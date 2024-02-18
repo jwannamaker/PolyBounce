@@ -52,7 +52,7 @@ class Ball(pygame.sprite.Sprite):
                     if self.rect.left <= collision.x and self.prev_rect.left >= collision.x:
                         self.rect.left = collision.x
                         self.position.x = collision.x + self.radius
-                        self.velocity.x = bounced_velocity.x
+                        self.velocity.x = bounced_velocity.x 
                 
                 if type == 'vertical':
                     # Collision is on the bottom
@@ -103,11 +103,11 @@ class Ball(pygame.sprite.Sprite):
             self.velocity.y *= -0.9
         
         # self.velocity += self.acceleration
-        self.collision('horizontal')    # Detect collision along x-axis
         self.position.x += self.velocity.x
+        self.collision('horizontal')    # Detect collision along x-axis
         
-        self.collision('vertical')      # Detect collision along y-axis
         self.position.y += self.velocity.y
+        self.collision('vertical')      # Detect collision along y-axis
         
         self.rect.topleft = self.position - Vector2(self.radius)
         
