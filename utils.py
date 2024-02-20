@@ -2,10 +2,8 @@
     _summary_: Utility function module for the hexkeys project.
 '''
 
-import os, random, pymunk
-import pymunk.pygame_util
+import os, random, pygame, pymunk, pymunk.pygame_util
 import numpy as np
-import pygame
 from pygame import Vector2
 
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]

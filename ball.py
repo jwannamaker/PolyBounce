@@ -68,7 +68,7 @@ class Ball(pygame.sprite.Sprite):
                         self.position.y = collision.y + self.radius
                         self.velocity.y = bounced_velocity.y
             
-    def update(self):
+    def update(self, dt):
         self.prev_rect = self.rect.copy()
         self.prev_position = self.position.copy()
         

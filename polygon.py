@@ -3,76 +3,48 @@
 '''
 
 from utils import *
-
-"""
-class PolySegment(pygame.sprite.Sprite):
-    '''
-        Represents a segment of a polygon. Helps the collision detection, amongst
-        many other things.
-        
-        Requirements: Return some way to determine the slope of the line that 
-        the ball has collided with
-    '''
-    def __init__(self, start, end, color, thickness = 3):
-        super().__init__()
-        
-        self.start = Vector2(start)
-        self.end = Vector2(end)
-        self.color = color
-        self.thickness = thickness
-        
-    def draw(self, surface):
-        pygame.draw.line(surface, self.color, self.start, self.end, self.thickness)
-        points = [self.end, (surface.get_rect().centerx, surface.get_rect().centery), self.start]
-        pygame.draw.lines(surface, PALLETE['white'], True, points, self.thickness)
-        
-    def get_length(self):
-        return self.start.distance_to(self.end)
-    
-    def get_normal(self):
-        unit_z_vector = Vector3(0, 0, 1)
-        side_vector = Vector3(self.end.x - self.start.x, self.end.y - self.start.y, 0)
-        normal = unit_z_vector.cross(side_vector)
-        print('Side vector:', side_vector, '; Normal Vector:', normal)
-        return normal
-"""
+from segment import PolySegment
 
 class Polygon(pygame.sprite.Sprite):
-    '''Polygon ring rotates using  Q (counterclockwise) and E (clockwise).
+    '''Polygon ring rotates using  Q/A (counterclockwise) and E/D (clockwise).
 
     Args:
         pygame (pygame.sprite.Sprite): base class
     '''
     
-    def __init__(self, radius, N, wall_thickness = 50, color = random.choice(list(PALLETE.values()))):
+    def __init__(self, radius, N, wall_thickness=50, color=random.choice(list(PALLETE.values()))):
         super().__init__()
-        self.radius = radius    
+        self.radius = radius
+        self.N = N                  
         self.color = color
         self.wall_thickness = wall_thickness
-        self.position = Vector2(CENTER)
-        self.N = N                  # number of sides
+        self.inner_radius = self.radius - self.wall_thickness
 
         # self.active = False     # active ==> ball currently inside
-        # self.keys_held = []
+        # self.keys_pressed = []
         
+        # Calculated properties
+        self.position = Vector2(CENTER)
         self.theta = self.get_theta()
         self.vertices = self.get_vertices(self.radius)
-        self.inner_vertices = self.get_vertices(self.radius - self.wall_thickness)
+        self.inner_vertices = self.get_vertices(self.inner_radius)
         self.image = pygame.Surface((self.radius * 2, self.radius * 2))
         self.image.fill((0, 0, 0))
         self.draw_ring()
         self.image.set_colorkey((0, 0, 0))
-        
-        self.rect = self.image.get_rect() 
+        self.rect = self.image.get_rect()
         self.rect.center = self.position
-        # get the surface from the area bounded by the shape for the mask
         self.mask = pygame.mask.from_surface(self.image)
+        
+        # pymunk setup as a kinematic body because it needs to be able to rotate
+        self.body = pymunk.Body(0, 0, pymunk.Body.KINEMATIC)
+        self.shape = self.get_segment_list()
+        self.body.position = self.position
     
     def get_theta(self):
         '''
             Returns the calculation for the internal angle in radians. Used for 
-            drawing the vertices of the polygon. Shifted so the first vertex is
-            at the top. 
+            drawing the vertices of the polygon.
         '''
         return (2 * np.pi) / self.N
     
@@ -83,6 +55,16 @@ class Polygon(pygame.sprite.Sprite):
             y = (radius * np.sin(tilt + self.theta * i)) + self.radius
             vertices.append(Vector2(x, y))
         return vertices
+    
+    def get_segment_list(self):
+        segment_list = []
+        for i in range(len(self.inner_vertices)):
+            point_a = self.inner_vertices[i]
+            point_b = self.inner_vertices[i + 1] if i < self.N else 0
+            segment = pymunk.Segment(self.body, point_a, point_b)
+            segment.set_neighbors(point_a, point_b) # there is a neighbor present at both endpoints of this segment
+            segment_list.append(segment)
+        return segment_list
         
     def draw_ring(self):
         pygame.draw.polygon(self.image, random.choice(list(RING_PALLETE.values())), self.vertices)
@@ -113,36 +95,12 @@ class Polygon(pygame.sprite.Sprite):
         # Return the vector representing the slope of the closest side
         return get_slope(Vector2(closest_vertex), Vector2(next_vertex))
     
-    def update(self):
-        # self.rect.x, self.rect.y = self.position.astype(int) - self.radius
-        # self.rect = pygame.draw.lines(self.image, self.color, True, self.vertices)
-        # self.draw_lines()
-        # self.rect.topleft = self.position - Vector2(self.radius)
+    def update(self, dt):
         pass
         
     def cw_rotate(self):
-        # new_vertices = []
-        # for p in self.vertices:
-        #     result = np.array((0.0, 0.0))
-        #     result = rotate_vector(-1.0 * self.theta / 2.0, p[0], p[1])
-        #     new_vertices.append(result)
-        # self.vertices = new_vertices
-        # angle = self.theta / 2.0
         pass
         
         
-    def ccw_rotate(self):
-        # new_vertices = []
-        # for p in self.vertices:
-        #     result = np.array((0.0, 0.0))
-        #     result = rotate_vector(self.theta / 2.0, p[0], p[1])
-        #     new_vertices.append(result)
-        # self.vertices = new_vertices
-            
+    def ccw_rotate(self):   
         pass
-    
-    # def get_normal_at(self, point):
-    #     # TODO: return the matrix representing the line if the point 'collides' 
-    #     # with a side of this ring 
-            
-    #     print(str(point))

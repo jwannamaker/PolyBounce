@@ -26,12 +26,13 @@ class PolyBounce:
         pygame.display.set_caption('Johnny Tries Physics and Stuff!')
         self.clock = pygame.time.Clock()
         self.fps = 1
-        self.dt = 1 / 60        # To create a semi-fixed framerate rendering
+        self.dt = 1 / self.fps        # To create a semi-fixed framerate rendering
         self.running = False
         self.stepping = False
         
         # pymunk setup
         self.space = pymunk.Space()
+        self.space.gravity = (0, 50)
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         
         # font setup
@@ -45,11 +46,13 @@ class PolyBounce:
         
         # game objects setup
         self.inner_ring = Polygon(350, 4)
+        self.space.add(self.inner_ring)
         # self.outer_ring = Polygon(250, 6)
         # self.outer_outer_ring = Polygon(300, 6)
         self.ring_group = pygame.sprite.Group(self.inner_ring)
         
         self.player_ball = Ball(20, self.ring_group)
+        self.space.add(self.player_ball)
         self.player_group = pygame.sprite.RenderClear(self.player_ball)
         
     def start(self):
@@ -117,23 +120,12 @@ class PolyBounce:
                     self.inner_ring.cw_rotate()
     
     def process_game_logic(self):
-        # Checks if the player ball is currently inside of the inscribed circle of the ring
-        # if pygame.sprite.spritecollide(self.player_ball, self.ring_group, False, pygame.sprite.collide_mask):
-        #     if self.player_ball.position != CENTER:
-        #         self.player_ball.velocity *= -1
-            # player_mask = self.player_ball.mask
-            # ring_mask = self.inner_ring.mask
-            # offset_x = self.player_ball.rect.topleft[0] - self.inner_ring.rect.topleft[0]
-            # offset_y = self.player_ball.rect.topleft[1] - self.inner_ring.rect.topleft[1]
-            # overlap_amount = ring_mask.overlap_area(player_mask, (offset_x, offset_y))
-            # if overlap_amount >= 1:
-            #     dx = ring_mask.overlap_area(player_mask, (offset_x + 1, offset_y)) - ring_mask.overlap_area(player_mask, (offset_x - 1, offset_y))
-            #     dy = ring_mask.overlap_area(player_mask, (offset_x, offset_y + 1)) - ring_mask.overlap_area(player_mask, (offset_x, offset_y - 1))     
-                # self.player_ball.position.x += dx
-                # self.player_ball.position.y += dy
-            
-        self.player_ball.update()
-        # self.ring_group.update()
+        '''
+            Updates the player_group and the ring_group according to the current
+            game state.
+        '''
+        self.player_group.update(self.dt)
+        self.ring_group.update(self.dt)
     
     def draw(self):
         '''
@@ -146,7 +138,10 @@ class PolyBounce:
         self.display_stats()
         self.player_ball.draw(self.screen)
         self.ring_group.draw(self.screen)
+        
+        # TODO: Add some logic to address the need for semi-fixed framerate
         self.dt = self.clock.tick(self.fps) / 1000
+        self.space.step(self.dt)
         pygame.display.flip()
         
     def main_loop(self):
