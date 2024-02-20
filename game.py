@@ -1,11 +1,22 @@
+'''
+    Summary of this file here
+'''
+
 from utils import *
 from polygon import Polygon
 from ball import Ball
 
 class PolyBounce:
     '''
-        Goal: Bounce the ball on the right color of the innermost ring,
-        to clear it and infinitely progress to the next ring.
+    End Product:
+        The Rings will: 
+            Continually generate with random N = [3 - 7]
+            All smoothly shrink towards the center once the ball 'clears' a ring
+            Smoothly rotate CCW or CW when the player presses A or D respectively
+            
+        The Ball will:
+            Change color according to the last Ring wall it touched
+            Stay 'trapped' within the innermost ring until it clears
         
     '''
     def __init__(self):
@@ -15,7 +26,13 @@ class PolyBounce:
         pygame.display.set_caption('Johnny Tries Physics and Stuff!')
         self.clock = pygame.time.Clock()
         self.fps = 1
-        self.dt = 0
+        self.dt = 1 / 60        # To create a semi-fixed framerate rendering
+        self.running = False
+        self.stepping = False
+        
+        # pymunk setup
+        self.space = pymunk.Space()
+        self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         
         # font setup
         pygame.font.init()
@@ -25,7 +42,6 @@ class PolyBounce:
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.background.fill(BACKGROUND_PALLETE['black'])
         self.screen.blit(self.background, (0, 0))
-        self.running = False
         
         # game objects setup
         self.inner_ring = Polygon(350, 4)

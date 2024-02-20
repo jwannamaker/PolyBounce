@@ -1,4 +1,7 @@
-import pygame
+'''
+    Summary of this file
+'''
+
 from utils import *
 
 """

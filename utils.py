@@ -2,11 +2,11 @@
     _summary_: Utility function module for the hexkeys project.
 '''
 
-import os
-import random
-import pygame
+import os, random, pymunk
+import pymunk.pygame_util
 import numpy as np
-from pygame import Vector2, Vector3
+import pygame
+from pygame import Vector2
 
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, 'data')
@@ -14,17 +14,6 @@ DATA_DIR = os.path.join(MAIN_DIR, 'data')
 SCREEN_SIZE = Vector2(1280, 720)
 CENTER = Vector2(SCREEN_SIZE // 2)
 
-GRAVITY = Vector2(0, 5)
-
-RING_PADDING = 50
-RING_SIDES = {
-    'up_left', 
-    'up', 
-    'up_right', 
-    'down_right', 
-    'down', 
-    'down_left'
-}
 RING_PALLETE = {
     'white': (250, 250, 250),
     'pink': (201, 93, 177),
@@ -33,9 +22,8 @@ RING_PALLETE = {
     'light-blue': (170, 224, 241),
     'cyan': (144, 239, 240)
 }
-
 PALLETE = {
-    'white': (255, 255, 255),
+    'white': (250, 250, 250),
     'pink': (201, 93, 177),
     'light-purple': (137, 100, 187),
     'blue': (157, 169, 214),
