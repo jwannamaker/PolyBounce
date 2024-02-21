@@ -11,7 +11,7 @@ class Polygon(pygame.sprite.Sprite):
         pygame (pygame.sprite.Sprite): base class
     '''
     
-    def __init__(self, radius, N, wall_thickness=50, color=random.choice(list(PALLETE.values()))):
+    def __init__(self, space, radius, N, wall_thickness=50, color=random.choice(list(PALLETE.values()))):
         super().__init__()
         self.radius = radius
         self.N = N                  
@@ -37,8 +37,9 @@ class Polygon(pygame.sprite.Sprite):
         
         # pymunk setup as a kinematic body because it needs to be able to rotate
         self.body = pymunk.Body(0, 0, pymunk.Body.KINEMATIC)
-        self.body.position = self.position
+        self.body.position = int(self.position.x), int(self.position.y)
         self.shape = Polygon.attach_segments(self.inner_vertices, self.body)
+        space.add(self.body)
     
     def get_theta(self):
         '''
@@ -64,10 +65,11 @@ class Polygon(pygame.sprite.Sprite):
             Effectively creates a polygon for pymunk purposes.
         '''
         segment_list = []
-        for i in range(len(vertices) + 1):
-            point_a = vertices[i]
-            point_b = vertices[i + 1] if i < len(vertices) else 0
-            segment = pymunk.Segment(body, point_a, point_b)
+        for i in range(len(vertices)):
+            j = i + 1 if i < len(vertices)-1 else 0
+            point_a = vertices[i][0], vertices[i][1]
+            point_b = vertices[j][0], vertices[j][1]
+            segment = pymunk.Segment(body, point_a, point_b, 1)
             segment.set_neighbors(point_a, point_b) # there is a neighbor present at both endpoints of this segment
             segment_list.append(segment)
         return segment_list

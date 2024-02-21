@@ -19,7 +19,7 @@ class ScreenBox:
         self.draw_options = pymunk.pygame_util.DrawOptions(screen)
         self.wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         self.wall_shape = self.get_walls(screen)
-        self.space.add()
+        self.space.add(self.wall_body)
         
     def get_walls(self, surface):
         margin = 0     # distance from the wall to the box
@@ -27,6 +27,9 @@ class ScreenBox:
         
         screen_corners = [(0, 0), (0, y), (x, y), (x, 0)]
         Polygon.attach_segments(screen_corners, self.wall_body)
+        
+    def step(self, dt):
+        self.space.step(dt)
 
 class PolyBounce:
     '''
@@ -51,6 +54,7 @@ class PolyBounce:
         self.dt = 1 / self.fps        # To create a semi-fixed framerate rendering
         self.running = False
         
+        self.physics_box = ScreenBox(self.screen)
         
         # font setup
         pygame.font.init()
@@ -62,14 +66,12 @@ class PolyBounce:
         self.screen.blit(self.background, (0, 0))
         
         # game objects setup
-        self.inner_ring = Polygon(350, 4)
-        self.space.add(self.inner_ring)
+        self.inner_ring = Polygon(self.physics_box.space, 350, 4)
         # self.outer_ring = Polygon(250, 6)
         # self.outer_outer_ring = Polygon(300, 6)
         self.ring_group = pygame.sprite.Group(self.inner_ring)
         
-        self.player_ball = Ball(20, self.ring_group)
-        self.space.add(self.player_ball)
+        self.player_ball = Ball(self.physics_box.space, 20)
         self.player_group = pygame.sprite.RenderClear(self.player_ball)
         
     def start(self):
@@ -158,7 +160,7 @@ class PolyBounce:
         
         # TODO: Add some logic to address the need for semi-fixed framerate
         self.dt = self.clock.tick(self.fps) / 1000
-        self.space.step(self.dt)
+        self.physics_box.step(self.dt)
         pygame.display.flip()
         
     def main_loop(self):

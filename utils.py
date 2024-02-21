@@ -58,3 +58,4 @@ def get_slope(a, b):
     dy = abs(b.y) - abs(a.y)
     slope = Vector2(dx, dy)
     return slope
+
