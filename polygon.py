@@ -3,7 +3,6 @@
 '''
 
 from utils import *
-from segment import PolySegment
 
 class Polygon(pygame.sprite.Sprite):
     '''Polygon ring rotates using  Q/A (counterclockwise) and E/D (clockwise).
@@ -38,8 +37,8 @@ class Polygon(pygame.sprite.Sprite):
         
         # pymunk setup as a kinematic body because it needs to be able to rotate
         self.body = pymunk.Body(0, 0, pymunk.Body.KINEMATIC)
-        self.shape = self.get_segment_list()
         self.body.position = self.position
+        self.shape = Polygon.attach_segments(self.inner_vertices, self.body)
     
     def get_theta(self):
         '''
@@ -56,12 +55,19 @@ class Polygon(pygame.sprite.Sprite):
             vertices.append(Vector2(x, y))
         return vertices
     
-    def get_segment_list(self):
+    @staticmethod
+    def attach_segments(vertices, body):
+        '''
+            Returns the line segments connecting all the passed vertices together,
+            adding to the specified body and making all segments neighbors.
+            
+            Effectively creates a polygon for pymunk purposes.
+        '''
         segment_list = []
-        for i in range(len(self.inner_vertices)):
-            point_a = self.inner_vertices[i]
-            point_b = self.inner_vertices[i + 1] if i < self.N else 0
-            segment = pymunk.Segment(self.body, point_a, point_b)
+        for i in range(len(vertices) + 1):
+            point_a = vertices[i]
+            point_b = vertices[i + 1] if i < len(vertices) else 0
+            segment = pymunk.Segment(body, point_a, point_b)
             segment.set_neighbors(point_a, point_b) # there is a neighbor present at both endpoints of this segment
             segment_list.append(segment)
         return segment_list
@@ -73,8 +79,6 @@ class Polygon(pygame.sprite.Sprite):
     def draw(self, surface):
         blit_position = self.position - Vector2(self.radius)
         surface.blit(self.image, blit_position)
-    
-    
     
     def get_closest_side(self, point):
         '''
@@ -98,9 +102,8 @@ class Polygon(pygame.sprite.Sprite):
     def update(self, dt):
         pass
         
-    def cw_rotate(self):
+    def cw_rotate(self, dt):
         pass
         
-        
-    def ccw_rotate(self):   
+    def ccw_rotate(self, dt):   
         pass

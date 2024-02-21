@@ -6,6 +6,28 @@ from utils import *
 from polygon import Polygon
 from ball import Ball
 
+class ScreenBox:
+    '''
+        The pymunk simulation that the game references and interacts with, but 
+        not necessarily what gets displayed to the screen 1:1
+    '''
+    def __init__(self, screen):
+        
+        # pymunk setup
+        self.space = pymunk.Space()
+        self.space.gravity = (0, 50)
+        self.draw_options = pymunk.pygame_util.DrawOptions(screen)
+        self.wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        self.wall_shape = self.get_walls(screen)
+        self.space.add()
+        
+    def get_walls(self, surface):
+        margin = 0     # distance from the wall to the box
+        x, y = surface.get_size()
+        
+        screen_corners = [(0, 0), (0, y), (x, y), (x, 0)]
+        Polygon.attach_segments(screen_corners, self.wall_body)
+
 class PolyBounce:
     '''
     End Product:
@@ -28,12 +50,7 @@ class PolyBounce:
         self.fps = 1
         self.dt = 1 / self.fps        # To create a semi-fixed framerate rendering
         self.running = False
-        self.stepping = False
         
-        # pymunk setup
-        self.space = pymunk.Space()
-        self.space.gravity = (0, 50)
-        self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         
         # font setup
         pygame.font.init()
