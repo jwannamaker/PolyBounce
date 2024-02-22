@@ -12,6 +12,12 @@ DATA_DIR = os.path.join(MAIN_DIR, 'data')
 SCREEN_SIZE = Vector2(1280, 720)
 CENTER = Vector2(SCREEN_SIZE // 2)
 
+scale = 1000
+LEFT = (-scale, 0)
+RIGHT = (scale, 0)
+UP = (0, -scale)
+DOWN = (0, scale)
+
 RING_PALLETE = {
     'white': (250, 250, 250),
     'pink': (201, 93, 177),

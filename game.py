@@ -6,31 +6,6 @@ from utils import *
 from polygon import Polygon
 from ball import Ball
 
-class ScreenBox:
-    '''
-        The pymunk simulation that the game references and interacts with, but 
-        not necessarily what gets displayed to the screen 1:1
-    '''
-    def __init__(self, screen):
-        
-        # pymunk setup
-        self.space = pymunk.Space()
-        self.space.gravity = (0, 50)
-        self.draw_options = pymunk.pygame_util.DrawOptions(screen)
-        self.wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        self.wall_shape = self.get_walls(screen)
-        self.space.add(self.wall_body)
-        
-    def get_walls(self, surface):
-        margin = 0     # distance from the wall to the box
-        x, y = surface.get_size()
-        
-        screen_corners = [(0, 0), (0, y), (x, y), (x, 0)]
-        Polygon.attach_segments(screen_corners, self.wall_body)
-        
-    def step(self, dt):
-        self.space.step(dt)
-
 class PolyBounce:
     '''
     End Product:
@@ -44,6 +19,8 @@ class PolyBounce:
             Stay 'trapped' within the innermost ring until it clears
         
     '''
+    
+    
     def __init__(self):
         # pygame setup
         pygame.init()
@@ -51,10 +28,16 @@ class PolyBounce:
         pygame.display.set_caption('Johnny Tries Physics and Stuff!')
         self.clock = pygame.time.Clock()
         self.fps = 1
-        self.dt = 1 / self.fps        # To create a semi-fixed framerate rendering
+        self.dt = 1 / self.fps       
         self.running = False
         
-        self.physics_box = ScreenBox(self.screen)
+        # pymunk setup
+        self.space = pymunk.Space()
+        self.space.gravity = (0, 0.8)
+        self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
+        self.wall_body = pymunk.Body(0, 0, body_type=pymunk.Body.STATIC)
+        screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
+        Polygon.attach_segments(screen_corners, self.wall_body, self.space)
         
         # font setup
         pygame.font.init()
@@ -66,13 +49,13 @@ class PolyBounce:
         self.screen.blit(self.background, (0, 0))
         
         # game objects setup
-        self.inner_ring = Polygon(self.physics_box.space, 350, 4)
+        self.inner_ring = Polygon(self.space, 300, 6)
         # self.outer_ring = Polygon(250, 6)
         # self.outer_outer_ring = Polygon(300, 6)
         self.ring_group = pygame.sprite.Group(self.inner_ring)
         
-        self.player_ball = Ball(self.physics_box.space, 20)
-        self.player_group = pygame.sprite.RenderClear(self.player_ball)
+        self.player_ball = Ball(self.space, 25)
+        self.player_group = pygame.sprite.Group(self.player_ball)
         
     def start(self):
         self.running = True
@@ -83,8 +66,10 @@ class PolyBounce:
         
     def display_stats(self):
         player_info = []
-        player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Position', self.player_ball.position[0], self.player_ball.position[1]))
-        player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Velocity', self.player_ball.velocity[0], self.player_ball.velocity[1]))
+        # self.space.debug_draw(self.draw_options)
+        # player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Info', self.player_ball.body., self.player_ball.position[1]))
+        player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Position', self.player_ball.body.position[0], self.player_ball.body.position[1]))
+        player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Velocity', self.player_ball.body.velocity[0], self.player_ball.body.velocity[1]))
         
         # TODO Make some fancy display rect for the text to go onto and then blit that onto the screen
         
@@ -115,7 +100,11 @@ class PolyBounce:
                     self.player_ball.add_key_held('right')
                 
                 if event.key == pygame.K_SPACE:
-                    self.player_ball.add_key_held('jump')
+                    # self.player_ball.add_key_held('jump')
+                    new_ball = Ball(self.space, 25)
+                    new_ball.draw(self.screen)
+                    self.player_group.add(new_ball)
+                    
                     
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LSHIFT:
@@ -131,20 +120,21 @@ class PolyBounce:
                     self.player_ball.remove_key_held('left')
                 
                 if event.key == pygame.K_SPACE:
-                    self.player_ball.remove_key_held('jump')
+                    # self.player_ball.remove_key_held('jump')
+                    pass
                     
                 if event.key == pygame.K_q:
-                    self.inner_ring.ccw_rotate()
+                    self.inner_ring.ccw_rotate(self.dt)
                 if event.key == pygame.K_e:
-                    self.inner_ring.cw_rotate()
+                    self.inner_ring.cw_rotate(self.dt)
     
     def process_game_logic(self):
         '''
             Updates the player_group and the ring_group according to the current
             game state.
         '''
-        self.player_group.update(self.dt)
         self.ring_group.update(self.dt)
+        self.player_group.update(self.dt)
     
     def draw(self):
         '''
@@ -152,15 +142,16 @@ class PolyBounce:
         '''
         self.screen.blit(self.background, (0, 0))
         # drawing some lines for the purpose of debugging/analyzing output values
-        pygame.draw.line(self.screen, (255, 0, 0), (self.player_ball.position.x, 0), (self.player_ball.position.x, SCREEN_SIZE.y))
-        pygame.draw.line(self.screen, (255, 0, 0), (0, self.player_ball.position.y), (SCREEN_SIZE.x, self.player_ball.position.y))
+        # pygame.draw.line(self.screen, (255, 0, 0), (self.player_ball.position[0], 0), (self.player_ball.position[0], SCREEN_SIZE[1]))
+        # pygame.draw.line(self.screen, (255, 0, 0), (0, self.player_ball.position[1]), (SCREEN_SIZE[0], self.player_ball.position[1]))
+        # pygame.display.update()
         self.display_stats()
-        self.player_ball.draw(self.screen)
         self.ring_group.draw(self.screen)
+        self.player_ball.draw(self.screen)
         
         # TODO: Add some logic to address the need for semi-fixed framerate
-        self.dt = self.clock.tick(self.fps) / 1000
-        self.physics_box.step(self.dt)
+        self.clock.tick(self.fps)
+        self.space.step(self.dt)
         pygame.display.flip()
         
     def main_loop(self):

@@ -26,10 +26,13 @@ class Ball(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         
         self.body = pymunk.Body(0, 0, pymunk.Body.DYNAMIC)
-        self.shape = pymunk.Circle(self.body, self.radius, (float(self.position.x), float(self.position.y)))
+        self.body.position = float(self.position.x), float(self.position.y)
+        self.shape = pymunk.Circle(self.body, self.radius)
         self.shape.density = 1
-        self.shape.elasticity = 0.7
-        space.add(self.body)
+        self.shape.elasticity = 0.9
+        self.shape.friction = 0.8
+        self.body.moment = pymunk.moment_for_circle(10, 0, self.radius)
+        space.add(self.body, self.shape)
     
     # def collision(self, type):
     #     collision_sprites = pygame.sprite.spritecollide(self, self.ring_group, False, pygame.sprite.collide_mask)
@@ -74,21 +77,16 @@ class Ball(pygame.sprite.Sprite):
     #                     self.velocity.y = bounced_velocity.y
             
     def update(self, dt):
-        self.prev_rect = self.rect.copy()
-        self.prev_position = self.position.copy()
-        
         # Applying any user input for movement 
         if self.keys_held.count('left'):
-            self.velocity.x -= 0.5
+            self.body.apply_force_at_local_point(LEFT, [self.radius, 0])
         if self.keys_held.count('right'):
-            self.velocity.x += 0.5
+            self.body.apply_force_at_local_point(RIGHT, [-self.radius, 0])
         if self.keys_held.count('up'):
-            # self.velocity.y -= 0.5
-            self.body.apply_force_at_local_point([0, -10], [self.radius/2, 0])
+            self.body.apply_force_at_local_point(UP, [0, -self.radius])
         if self.keys_held.count('down'):
-            # self.velocity.y += 0.5
-            self.body.apply_force_at_local_point([0, 10], [self.radius/2, 0])
-        self.position = Vector2(self.body.position)
+            self.body.apply_force_at_local_point(DOWN, [0, self.radius])
+        self.position = pymunk.pygame_util.to_pygame(self.body.position, self.image)
         
         
         # self.rect.topleft = self.position - Vector2(self.radius)
