@@ -90,12 +90,19 @@ class Polygon(pygame.sprite.Sprite):
         surface.blit(self.image, blit_position)
     
     def color_sides(self):
-        start_angle = 2 * np.pi
+        '''
+            Draws a pinwheel of the same number of segments as the polygon has N
+            sides, then uses the ring mask to show up as each side being a 
+            different color. The arc is drawn in CCW direction from the start angle
+            to the end angle.
+        '''
+        start_angle = 0
+        stop_angle = self.theta
         for i in range(1, self.N + 1):
             r_color = random.choice(list(RING_PALLETE.values()))
-            start_angle -= self.theta
-            end_angle = start_angle + self.theta
-            pygame.draw.arc(self.image, r_color, self.rect, round(start_angle), round(end_angle), self.radius)
+            start_angle += self.theta
+            stop_angle += self.theta
+            pygame.draw.arc(self.image, r_color, (0, 0, 600, 600), start_angle, stop_angle, self.radius - 1)
         
     
     def get_closest_side(self, point):
