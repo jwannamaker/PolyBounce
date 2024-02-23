@@ -20,7 +20,7 @@ class Polygon(pygame.sprite.Sprite):
         self.inner_radius = self.radius - self.wall_thickness
 
         # self.active = False     # active ==> ball currently inside
-        # self.keys_pressed = []
+        self.rotation_state = {}
         
         # Calculated properties
         self.position = Vector2(CENTER)
@@ -29,11 +29,12 @@ class Polygon(pygame.sprite.Sprite):
         self.inner_vertices = self.get_vertices(self.inner_radius, self.radius)
         self.image = pygame.Surface((self.radius*2, self.radius*2))
         self.image.fill((0, 0, 0))
-        self.draw_ring()
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
         self.rect.center = self.position
+        self.draw_ring()
         self.mask = pygame.mask.from_surface(self.image)
+        self.color_sides()
         
         # pymunk setup as a kinematic body because it needs to be able to rotate
         self.body = pymunk.Body(0, 0, pymunk.Body.STATIC)
@@ -79,14 +80,23 @@ class Polygon(pygame.sprite.Sprite):
         
     def draw_ring(self):
         '''
-            Draw the ring according to the body's position of the polygon.
+            Draw the ring according to the position of the polygon.
         '''
-        pygame.draw.polygon(self.image, random.choice(list(RING_PALLETE.values())), self.vertices)
+        pygame.draw.polygon(self.image, RING_PALLETE['white'], self.vertices)
         pygame.draw.polygon(self.image, (0, 0, 0), self.inner_vertices)
     
     def draw(self, surface):
         blit_position = self.position - Vector2(self.radius)
         surface.blit(self.image, blit_position)
+    
+    def color_sides(self):
+        start_angle = 2 * np.pi
+        for i in range(1, self.N + 1):
+            r_color = random.choice(list(RING_PALLETE.values()))
+            start_angle -= self.theta
+            end_angle = start_angle + self.theta
+            pygame.draw.arc(self.image, r_color, self.rect, round(start_angle), round(end_angle), self.radius)
+        
     
     def get_closest_side(self, point):
         '''
@@ -108,10 +118,16 @@ class Polygon(pygame.sprite.Sprite):
         return get_slope(Vector2(closest_vertex), Vector2(next_vertex))
     
     def update(self, dt):
-        pass
+        if self.rotation_state.get('cw'):
+            print('Rotate clockwise more')
+            self.cw_rotate(dt)
+        elif self.rotation_state.get('ccw'):
+            print('Rotate counter-clockwise more')
+        else:
+            self.rotation_state.clear()
         
     def cw_rotate(self, dt):
-        pass
+        print(f'Applying angular velocity of {dt} for time length {dt}')
         
     def ccw_rotate(self, dt):   
-        pass
+        print(f'Applying angular velocity of {dt} for time legnth {dt}')

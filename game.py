@@ -100,10 +100,7 @@ class PolyBounce:
                     self.player_ball.add_key_held('right')
                 
                 if event.key == pygame.K_SPACE:
-                    # self.player_ball.add_key_held('jump')
-                    new_ball = Ball(self.space, 25)
-                    new_ball.draw(self.screen)
-                    self.player_group.add(new_ball)
+                    self.player_ball.add_key_held('jump')
                     
                     
             if event.type == pygame.KEYUP:
@@ -120,7 +117,7 @@ class PolyBounce:
                     self.player_ball.remove_key_held('left')
                 
                 if event.key == pygame.K_SPACE:
-                    # self.player_ball.remove_key_held('jump')
+                    self.player_ball.remove_key_held('jump')
                     pass
                     
                 if event.key == pygame.K_q:

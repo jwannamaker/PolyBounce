@@ -4,7 +4,7 @@
 
 import os, random, pygame, pymunk, pymunk.pygame_util
 import numpy as np
-from pygame import Vector2
+from pygame import Vector2, gfxdraw
 
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, 'data')
@@ -12,7 +12,7 @@ DATA_DIR = os.path.join(MAIN_DIR, 'data')
 SCREEN_SIZE = Vector2(1280, 720)
 CENTER = Vector2(SCREEN_SIZE // 2)
 
-scale = 1000
+scale = 2000
 LEFT = (-scale, 0)
 RIGHT = (scale, 0)
 UP = (0, -scale)

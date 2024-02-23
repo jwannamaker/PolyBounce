@@ -19,7 +19,7 @@ class Ball(pygame.sprite.Sprite):
         self.image.set_colorkey((0, 0, 0))
         
         pygame.draw.circle(self.image, self.color, [self.radius, self.radius], self.radius)
-        self.rect = self.image.get_rect()
+        self.rect = pygame.FRect(self.image.get_rect())
         self.rect.topleft = self.position - Vector2(self.radius)
         self.prev_rect = self.rect.copy()
         
@@ -79,13 +79,13 @@ class Ball(pygame.sprite.Sprite):
     def update(self, dt):
         # Applying any user input for movement 
         if self.keys_held.count('left'):
-            self.body.apply_force_at_local_point(LEFT, [self.radius, 0])
+            self.body.apply_force_at_local_point(LEFT, [0, 0])
         if self.keys_held.count('right'):
-            self.body.apply_force_at_local_point(RIGHT, [-self.radius, 0])
+            self.body.apply_force_at_local_point(RIGHT, [0, 0])
         if self.keys_held.count('up'):
-            self.body.apply_force_at_local_point(UP, [0, -self.radius])
+            self.body.apply_force_at_local_point(UP, [0, 0])
         if self.keys_held.count('down'):
-            self.body.apply_force_at_local_point(DOWN, [0, self.radius])
+            self.body.apply_force_at_local_point(DOWN, [0, 0])
         self.position = pymunk.pygame_util.to_pygame(self.body.position, self.image)
         
         
