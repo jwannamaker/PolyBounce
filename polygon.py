@@ -11,11 +11,10 @@ class Polygon(pygame.sprite.Sprite):
         pygame (pygame.sprite.Sprite): base class
     '''
     
-    def __init__(self, space, radius, N, wall_thickness=50, color=random.choice(list(PALLETE.values()))):
+    def __init__(self, space, radius, N, wall_thickness=50):
         super().__init__()
         self.radius = radius
-        self.N = N                  
-        self.color = color
+        self.N = N          
         self.wall_thickness = wall_thickness
         self.inner_radius = self.radius - self.wall_thickness
 
@@ -82,7 +81,7 @@ class Polygon(pygame.sprite.Sprite):
         '''
             Draw the ring according to the position of the polygon.
         '''
-        pygame.draw.polygon(self.image, RING_PALLETE['white'], self.vertices)
+        pygame.draw.polygon(self.image, RING_PALLETE['cyan'], self.vertices)
         pygame.draw.polygon(self.image, (0, 0, 0), self.inner_vertices)
     
     def draw(self, surface):
@@ -96,13 +95,15 @@ class Polygon(pygame.sprite.Sprite):
             different color. The arc is drawn in CCW direction from the start angle
             to the end angle.
         '''
-        start_angle = 0
-        stop_angle = self.theta
-        for i in range(1, self.N + 1):
+        start_angle = 1.5 * np.pi
+        stop_angle = start_angle + self.theta
+        arc_surface = self.image.subsurface((0, 0, 600, 600))
+        for _ in range(self.N):
             r_color = random.choice(list(RING_PALLETE.values()))
             start_angle += self.theta
             stop_angle += self.theta
-            pygame.draw.arc(self.image, r_color, (0, 0, 600, 600), start_angle, stop_angle, self.radius - 1)
+            pygame.draw.arc(arc_surface, r_color, (0, 0, 600, 600), start_angle, stop_angle, self.radius)
+        arc_surface.blit(self.mask.to_surface(), (0, 0), None, pygame.BLEND_RGBA_MULT)
         
     
     def get_closest_side(self, point):
