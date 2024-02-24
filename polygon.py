@@ -48,7 +48,7 @@ class Polygon(pygame.sprite.Sprite):
         '''
         return (2 * np.pi) / self.N
     
-    def get_vertices(self, radius, offset=0, tilt=1.5*np.pi):
+    def get_vertices(self, radius, offset=0, tilt=-np.pi/2):
         vertices = []
         for i in range(1, self.N + 1):
             x = (radius * np.cos(tilt + self.theta * i)) + offset
@@ -95,10 +95,10 @@ class Polygon(pygame.sprite.Sprite):
             different color. The arc is drawn in CCW direction from the start angle
             to the end angle.
         '''
-        start_angle = 1.5 * np.pi
+        start_angle = np.pi/2
         stop_angle = start_angle + self.theta
         arc_surface = self.image.subsurface((0, 0, 600, 600))
-        for _ in range(self.N):
+        for i in range(self.N):
             r_color = random.choice(list(RING_PALLETE.values()))
             start_angle += self.theta
             stop_angle += self.theta
