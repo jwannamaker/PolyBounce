@@ -77,15 +77,6 @@ class Ball(pygame.sprite.Sprite):
     #                     self.velocity.y = bounced_velocity.y
             
     def update(self, dt):
-        # Applying any user input for movement 
-        if self.keys_held.count('left'):
-            self.body.apply_force_at_local_point(LEFT, [0, 0])
-        if self.keys_held.count('right'):
-            self.body.apply_force_at_local_point(RIGHT, [0, 0])
-        if self.keys_held.count('up'):
-            self.body.apply_force_at_local_point(UP, [0, 0])
-        if self.keys_held.count('down'):
-            self.body.apply_force_at_local_point(DOWN, [0, 0])
         self.position = pymunk.pygame_util.to_pygame(self.body.position, self.image)
         
         
