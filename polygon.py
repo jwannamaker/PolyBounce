@@ -11,29 +11,36 @@ class Side(pygame.sprite.Sprite):
         Inherits Sprite in order to use collision of masks; Kill individual sides
         instead of the whole polygon.
     '''
-    def __init__(self, parent, *, prev_side=None, next_side=None, inner_vertices, outer_vertices):
+    def __init__(self, parent, *, points):
         super().__init__()
-        self.prev_side = prev_side
-        self.next_side = next_side
-        self.points = [inner_vertices[0], outer_vertices[1], outer_vertices[0], outer_vertices[1]]
-        self.color = self.get_color()
+        self.parent = parent
+        self.points = points
         self.shape = pymunk.Poly(self.parent.body, self.points, radius=1)
+        self.shape.density = 1
+        self.shape.elasticity = 0.6
+        self.shape.friction = 0.5
         
         # sprite attributes
-        self.image = self.parent.get_subsurface() # as a subsurface, the colorkey should already be set
+        self.image = self.parent.get_subsurface()   # new surface inherits palette, colorkey, and alpha settings
+        self.color = random.choice(list(RING_PALLETE.values()))
         self.draw()
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
         self.parent.mask.draw(self.mask, (0, 0))    # add this mask to the parent mask
-        
-    def get_color(self):
-        color = pygame.Color(255, 0, 0, 255) # bc RED is a good error color to me
-        if self.prev_side and self.next_side:
-            while color == self.prev_side.color or color == self.next_side.color:
-                color.update(random.choice(list(RING_PALLETE.values())))
-        else:
-            color.update(random.choice(list(RING_PALLETE.values())))
-        return color
+    
+    def set_vertices(self, vertices):
+        for point in vertices:
+            self.points.append(point)
+    
+    def update_color(self, prev_side, next_side):
+        '''
+            Returns a random color that doesn't match either the color of the 
+            previous side or the color of the next side (if either are provided).
+        '''
+        color = pygame.Color(255, 0, 0, 255)        # RED for ERROR
+        while color == prev_side.color or color == next_side.color:
+            color = random.choice(list(RING_PALLETE.values()))
+        self.color = color
     
     def draw(self):
         gfxdraw.filled_polygon(self.image, self.shape.get_vertices(), self.color)
@@ -52,26 +59,11 @@ class Polygon(pygame.sprite.Sprite):
         self.radius = radius
         self.N = N          
         self.wall_thickness = wall_thickness
-
-        # self.active = False     # active ==> ball currently inside
-        self.rotation_state = None
         
         # Calculated properties
         self.inner_radius = self.radius - self.wall_thickness
         self.position = Vector2(CENTER)
         self.theta = (2 * np.pi) / self.N   # Internal angle in radians
-        
-        # Pygame properties
-        self.image = pygame.Surface((self.radius * 2, self.radius * 2))
-        self.image.fill((0, 0, 0))
-        self.image.set_colorkey((0, 0, 0))
-        self.vertices = self.get_vertices(self.radius, self.radius)
-        self.inner_vertices = self.get_vertices(self.inner_radius, self.radius)
-        self.rect = self.image.get_rect()
-        self.rect.center = self.position
-        # self.draw_ring()
-        self.mask = pygame.mask.from_surface(self.image)
-        self.color_sides()
         
         # pymunk setup
         # TODO: figure out how to deal with Kinematic body types so it can rotate
@@ -80,6 +72,22 @@ class Polygon(pygame.sprite.Sprite):
         self.body.position = float(CENTER.x), float(CENTER.y)
         sides = self.get_vertices(self.inner_radius)
         Polygon.attach_segments(sides, self.body, space)
+
+        # self.active = False     # active ==> ball currently inside
+        self.rotation_state = None
+        
+        
+        # Pygame properties
+        self.image = pygame.Surface((self.radius * 2, self.radius * 2))
+        self.image.fill((0, 0, 0))
+        self.image.set_colorkey((0, 0, 0))
+        self.vertices = self.get_vertices(self.radius, self.radius)
+        self.inner_vertices = self.get_vertices(self.inner_radius, self.radius)
+        self.sides = []
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
+        self.mask = pygame.mask.from_surface(self.image)
+        self.get_sides()
     
     def get_vertices(self, radius, offset=0, tilt=-np.pi/2):
         ''' 
@@ -97,10 +105,22 @@ class Polygon(pygame.sprite.Sprite):
         '''
             This method organizes all the necessary properties of each side into
             a list attribute of this Polygon.
+            
+            Preferred method for populating the sides with their appropriate pair
+            of vertices:
+                
         '''
-        self.sides.append(Side(self, ))
         for i in range(self.N):
-            self.sides.append()
+            j = i + 1 if i < self.N - 1 else 0
+            inner = (self.inner_vertices[i][0], self.inner_vertices[i][1]), (self.inner_vertices[j][0], self.inner_vertices[j][1])
+            outer = (self.vertices[i][0], self.vertices[i][1]), (self.vertices[j][0], self.vertices[j][1])
+            new_side = Side(self, points=[inner[0], inner[1], outer[0], outer[1]])
+            self.sides.append(new_side)
+            
+        for i in range(self.N):
+            j = i + 1 if i < self.N - 1 else 0
+            k = j + 1 if j < self.N - 1 else 0
+            self.sides[j].update_color(self.sides[i], self.sides[k])
         
     
     @staticmethod
@@ -113,7 +133,7 @@ class Polygon(pygame.sprite.Sprite):
         '''
         space.add(body)
         for i in range(len(vertices)):
-            j = i + 1 if i < len(vertices)-1 else 0
+            j = i + 1 if i < len(vertices) - 1 else 0
             point_a = vertices[i][0], vertices[i][1]
             point_b = vertices[j][0], vertices[j][1]
             segment = pymunk.Segment(body, point_a, point_b, 1)
@@ -125,9 +145,16 @@ class Polygon(pygame.sprite.Sprite):
         # return segment_list
     
     def get_subsurface(self):
+        '''
+            The returned subsurface inherits the colorkey, palette, and alpha 
+            settings of this surface.
+        '''
         return self.image.subsurface((0, 0, self.radius * 2, self.radius * 2))
     
     def draw(self, surface):
+        for side in self.sides:
+            side.draw()
+        
         blit_position = self.position - Vector2(self.radius)
         surface.blit(self.image, blit_position)
     

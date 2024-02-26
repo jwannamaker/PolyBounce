@@ -30,7 +30,7 @@ class Ball(pygame.sprite.Sprite):
         self.shape = pymunk.Circle(self.body, self.radius)
         self.shape.density = 1
         self.shape.elasticity = 0.9
-        self.shape.friction = 0.8
+        self.shape.friction = 0.78
         self.body.moment = pymunk.moment_for_circle(10, 0, self.radius)
         space.add(self.body, self.shape)
     

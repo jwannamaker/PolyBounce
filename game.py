@@ -49,10 +49,12 @@ class PolyBounce:
         self.screen.blit(self.background, (0, 0))
         
         # game objects setup
-        self.inner_ring = Polygon(self.space, 300, 6)
+        self.inner_ring = Polygon(self.space, 250, 5)
+        self.mid_ring = Polygon(self.space, 300, 5)
+        self.outer_ring = Polygon(self.space, 350, 5)
         # self.outer_ring = Polygon(250, 6)
         # self.outer_outer_ring = Polygon(300, 6)
-        self.ring_group = pygame.sprite.Group(self.inner_ring)
+        self.ring_group = pygame.sprite.Group(self.inner_ring, self.mid_ring, self.outer_ring)
         
         self.player_ball = Ball(self.space, 25)
         self.player_group = pygame.sprite.Group(self.player_ball)
