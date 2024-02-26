@@ -24,6 +24,7 @@ class Side(pygame.sprite.Sprite):
         self.draw()
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
+        self.parent.mask.draw(self.mask, (0, 0))    # add this mask to the parent mask
         
     def get_color(self):
         color = pygame.Color(255, 0, 0, 255) # bc RED is a good error color to me
@@ -129,23 +130,6 @@ class Polygon(pygame.sprite.Sprite):
     def draw(self, surface):
         blit_position = self.position - Vector2(self.radius)
         surface.blit(self.image, blit_position)
-    
-    def color_sides(self):
-        '''
-            Draws a pinwheel of the same number of segments as the polygon has N
-            sides, then uses the ring mask to show up as each side being a 
-            different color. The arc is drawn in CCW direction from the start angle
-            to the end angle.
-        '''
-        start_angle = np.pi/2
-        stop_angle = start_angle + self.theta
-        arc_surface = self.image.subsurface((0, 0, self.radius * 2, self.radius * 2))
-        rand_color = random.choice(list(RING_PALLETE.values()))
-        for i in range(self.N + 1):
-            start_angle += self.theta
-            stop_angle += self.theta
-            pygame.draw.arc(arc_surface, rand_color, (0, 0, self.radius * 2, self.radius * 2), start_angle, stop_angle, self.radius)
-        arc_surface.blit(self.mask.to_surface(), (0, 0), None, pygame.BLEND_RGBA_MULT)
     
     def update(self, dt):
         '''
