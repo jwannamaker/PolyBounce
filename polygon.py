@@ -37,7 +37,9 @@ class Side(pygame.sprite.Sprite):
             Returns a random color that doesn't match either the color of the 
             previous side or the color of the next side (if either are provided).
         '''
-        color = pygame.Color(255, 0, 0, 255)        # RED for ERROR
+        color = self.color        # stays that same if conditions are already met
+        # bumps out of loop once the color is NOT equal to previous color AND NOT 
+        # equal to next color
         while color == prev_side.color or color == next_side.color:
             color = random.choice(list(RING_PALLETE.values()))
         self.color = color
@@ -117,10 +119,15 @@ class Polygon(pygame.sprite.Sprite):
             new_side = Side(self, points=[inner[0], inner[1], outer[0], outer[1]])
             self.sides.append(new_side)
             
-        for i in range(self.N):
-            j = i + 1 if i < self.N - 1 else 0
-            k = j + 1 if j < self.N - 1 else 0
-            self.sides[j].update_color(self.sides[i], self.sides[k])
+        # updating all the colors so that none of them have the same color adjacent
+        prev = self.N - 1
+        curr = 0
+        next = 1
+        for i in range(self.N * 3):
+            curr = (curr + 1) % self.N - 1
+            prev = (prev + 1) % self.N - 1
+            next = (next + 1) % self.N - 1 
+            self.sides[curr].update_color(self.sides[prev], self.sides[next])
         
     
     @staticmethod

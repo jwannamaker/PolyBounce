@@ -90,37 +90,12 @@ class PolyBounce:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
                 if event.key == pygame.K_LSHIFT:
-                    self.player_ball.add_key_held('boost')
-                
-                if event.key == pygame.K_w:
-                    self.player_ball.add_key_held('up')
-                if event.key == pygame.K_s:
-                    self.player_ball.add_key_held('down')
-                if event.key == pygame.K_a:
-                    self.player_ball.add_key_held('left')
-                if event.key == pygame.K_d:
-                    self.player_ball.add_key_held('right')
-                
-                if event.key == pygame.K_SPACE:
-                    self.player_ball.add_key_held('jump')
+                    self.player_ball.add_key_held('slow')
                     
                     
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LSHIFT:
-                    self.player_ball.remove_key_held('boost')
-                    
-                if event.key == pygame.K_w:
-                    self.player_ball.remove_key_held('up')
-                if event.key == pygame.K_s:
-                    self.player_ball.remove_key_held('down')
-                if event.key == pygame.K_d:
-                    self.player_ball.remove_key_held('right')
-                if event.key == pygame.K_a:
-                    self.player_ball.remove_key_held('left')
-                
-                if event.key == pygame.K_SPACE:
-                    self.player_ball.remove_key_held('jump')
-                    pass
+                    self.player_ball.remove_key_held('slow')
                     
                 if event.key == pygame.K_q:
                     self.inner_ring.ccw_rotate(self.dt)
