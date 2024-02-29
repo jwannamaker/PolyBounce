@@ -1,5 +1,5 @@
 '''
-    Summary of this file
+polygon.py contains the definition for the Polygon class and the Side class.
 '''
 
 from utils import *
@@ -15,27 +15,31 @@ class Side(pygame.sprite.Sprite):
         super().__init__()
         self.parent = parent
         self.points = points
+        
+        # pymunk setup
         self.shape = pymunk.Poly(self.parent.body, self.points, radius=1)
         self.shape.density = 1
-        self.shape.elasticity = 0.6
-        self.shape.friction = 0.5
+        self.shape.elasticity = 0.4
+        self.shape.friction = 0.4
         
-        # sprite attributes
+        # pygame setup, sprite attributes
         self.image = self.parent.get_subsurface()   # new surface inherits palette, colorkey, and alpha settings
         self.color = random.choice(list(RING_PALLETE.values()))
         self.draw()
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
         self.parent.mask.draw(self.mask, (0, 0))    # add this mask to the parent mask
-    
-    def set_vertices(self, vertices):
-        for point in vertices:
-            self.points.append(point)
+        
+        # game logic
+        
+            
+    def add_neighbor(self, type, neighbor):
+        
     
     def update_color(self, prev_side, next_side):
         '''
-            Returns a random color that doesn't match either the color of the 
-            previous side or the color of the next side (if either are provided).
+        Returns a random color that doesn't match either the color of the 
+        previous side or the color of the next side (if either are provided).
         '''
         color = self.color        # stays that same if conditions are already met
         # bumps out of loop once the color is NOT equal to previous color AND NOT 
@@ -50,10 +54,8 @@ class Side(pygame.sprite.Sprite):
         
         
 class Polygon(pygame.sprite.Sprite):
-    '''Polygon ring rotates using  Q/A (counterclockwise) and E/D (clockwise).
-
-    Args:
-        pygame (pygame.sprite.Sprite): base class
+    '''
+    Polygon ring rotates using  Q/A (counterclockwise) and E/D (clockwise).
     '''
     
     def __init__(self, space, radius, N, wall_thickness=50):
@@ -75,9 +77,8 @@ class Polygon(pygame.sprite.Sprite):
         sides = self.get_vertices(self.inner_radius)
         Polygon.attach_segments(sides, self.body, space)
 
-        # self.active = False     # active ==> ball currently inside
-        self.rotation_state = None
-        
+        # Game logic setup
+        self.rotating = False
         
         # Pygame properties
         self.image = pygame.Surface((self.radius * 2, self.radius * 2))
@@ -85,10 +86,10 @@ class Polygon(pygame.sprite.Sprite):
         self.image.set_colorkey((0, 0, 0))
         self.vertices = self.get_vertices(self.radius, self.radius)
         self.inner_vertices = self.get_vertices(self.inner_radius, self.radius)
-        self.sides = []
         self.rect = self.image.get_rect()
         self.rect.center = self.position
         self.mask = pygame.mask.from_surface(self.image)
+        self.sides = []
         self.get_sides()
     
     def get_vertices(self, radius, offset=0, tilt=-np.pi/2):
@@ -107,10 +108,6 @@ class Polygon(pygame.sprite.Sprite):
         '''
             This method organizes all the necessary properties of each side into
             a list attribute of this Polygon.
-            
-            Preferred method for populating the sides with their appropriate pair
-            of vertices:
-                
         '''
         for i in range(self.N):
             j = i + 1 if i < self.N - 1 else 0
@@ -120,15 +117,15 @@ class Polygon(pygame.sprite.Sprite):
             self.sides.append(new_side)
             
         # updating all the colors so that none of them have the same color adjacent
+        # TODO fix this to include 'weight's for each color choice. All unique
         prev = self.N - 1
         curr = 0
         next = 1
-        for i in range(self.N * 3):
-            curr = (curr + 1) % self.N - 1
-            prev = (prev + 1) % self.N - 1
-            next = (next + 1) % self.N - 1 
+        for i in range(self.N):
+            curr = (curr + 1) % self.N
+            prev = (prev + 1) % self.N
+            next = (next + 1) % self.N
             self.sides[curr].update_color(self.sides[prev], self.sides[next])
-        
     
     @staticmethod
     def attach_segments(vertices, body, space):

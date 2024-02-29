@@ -4,6 +4,7 @@
 
 import os, random, pygame, pymunk, pymunk.pygame_util
 import numpy as np
+from collections import deque
 from pygame import Vector2, gfxdraw
 
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
@@ -12,18 +13,11 @@ DATA_DIR = os.path.join(MAIN_DIR, 'data')
 SCREEN_SIZE = Vector2(1280, 720)
 CENTER = Vector2(SCREEN_SIZE // 2)
 
-scale = 2000
-LEFT = (-scale, 0)
-RIGHT = (scale, 0)
-UP = (0, -scale)
-DOWN = (0, scale)
-
 RING_PALLETE = {
     'white': (250, 250, 250),
     'pink': (201, 93, 177),
     'light-purple': (137, 100, 187),
     'blue': (157, 169, 214),
-    'light-blue': (170, 224, 241),
     'cyan': (144, 239, 240)
 }
 PALLETE = {
