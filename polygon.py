@@ -34,7 +34,7 @@ class Side(pygame.sprite.Sprite):
         
             
     def add_neighbor(self, type, neighbor):
-        
+        pass    
     
     def update_color(self, prev_side, next_side):
         '''
