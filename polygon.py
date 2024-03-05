@@ -75,33 +75,10 @@ class Polygon(pygame.sprite.Sprite):
         # updating all the colors so that none of them have the same color adjacent
         prev = 0
         curr = 1
-        for i in range(self.N + 1):
+        for i in range(self.N):
             curr += 1 % self.N - 1 
             prev += 1 % self.N - 1
             self.sides[curr].update_color(self.sides[prev])
-    
-    @staticmethod
-    def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
-        '''
-            Returns the line segments connecting all the passed vertices together,
-            adding to the specified body and making all segments neighbors.
-            
-            Effectively creates a polygon for pymunk purposes.
-        '''
-        for i in range(len(vertices)):
-            j = i + 1 if i < len(vertices) - 1 else 0
-            point_a = vertices[i][0], vertices[i][1]
-            point_b = vertices[j][0], vertices[j][1]
-            segment = pymunk.Segment(body, point_a, point_b, 1)
-            segment.set_neighbors(point_a, point_b) # there is a neighbor present at both endpoints of this segment
-            segment.density = 100
-            segment.elasticity = 0.5
-            segment.friction = 0.7
-            # if segment not in body._shapes:
-            #     body.add(segment)
-        # if body not in space._bodies:
-        #     space.add(body)
-        # return segment_list
     
     def get_subsurface(self):
         '''

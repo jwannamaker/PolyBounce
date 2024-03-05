@@ -5,7 +5,7 @@
 from utils import *
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, space, radius, color=random.choice(list(PALLETE.values()))):
+    def __init__(self, space, radius, color=random.choice(list(POLY_PALLETE.keys()))):
         super().__init__()
         self.radius = radius
         self.color = color
@@ -52,7 +52,7 @@ class Ball(pygame.sprite.Sprite):
             the timestep (dt), 
             the velocity adjustments by checking if shift is being held down or not
         '''
-        self.shape.collision_type = RING_PALLETE[self.color] # getting the collision type based on the current color
+        self.shape.collision_type = POLY_PALLETE[self.color] # getting the collision type based on the current color
         self.position = pymunk.pygame_util.to_pygame(self.body.position, self.image)
         
     def draw(self, surface):

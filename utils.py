@@ -14,21 +14,14 @@ SCREEN_SIZE = Vector2(1280, 720)
 CENTER = Vector2(SCREEN_SIZE // 2)
 
 # every color corresponds to a collision type
-RING_PALLETE = {
-    (250, 250, 250): 1,
-    (201, 93, 177): 2,
-    (137, 100, 187): 3,
-    (157, 169, 214): 4,
-    (144, 239, 240): 5,
-    (255, 100, 100): 6
-}
-PALLETE = {
-    'white': (250, 250, 250),
-    'pink': (201, 93, 177),
-    'light-purple': (137, 100, 187),
-    'blue': (157, 169, 214),
-    'light-blue': (170, 224, 241),
-    'cyan': (144, 239, 240)
+POLY_PALLETE = {
+    (250, 250, 250): 1, # white
+    (201, 93, 177): 2,  # pink
+    (150, 100, 187): 3, # light-purple
+    (150, 170, 200): 4, # blue
+    (144, 239, 240): 5, # cyan
+    (255, 100, 100): 6, # red
+    (170, 224, 241): 7  # light-blue
 }
 BACKGROUND_PALLETE = {
     'black': (10, 10, 10),
@@ -41,23 +34,22 @@ def load_font():
     font_file = os.path.join(DATA_DIR, 'Emulogic-zrEw.ttf')
     return pygame.font.Font(font_file, 12)
 
-def rotate_vector(angle, x, y):
+def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
     '''
-    After rotation the vector is noted by
-    x' = x * cos(theta) - y * sin(theta)
-    y' = x * sin(theta) + y * cos(theta)
+        Returns the line segments connecting all the passed vertices together,
+        adding to the specified body and making all segments neighbors.
+        
+        Effectively creates a polygon for pymunk purposes.
     '''
-    a = np.cos(angle)
-    b = np.sin(angle)
-    R = np.matrix((a, -b), (b, a))
-    return np.matmul(((a, -b), (b, a)), (x, y))
-
-def get_slope(a, b):
-    '''
-        Return the slope between point a and point b.
-    '''
-    dx = abs(b.x) - abs(a.x)  # Changed to return the absolute value of these differences
-    dy = abs(b.y) - abs(a.y)
-    slope = Vector2(dx, dy)
-    return slope
-
+    for i in range(len(vertices)):
+        j = i + 1 if i < len(vertices) - 1 else 0
+        point_a = vertices[i][0], vertices[i][1]
+        point_b = vertices[j][0], vertices[j][1]
+        segment = pymunk.Segment(body, point_a, point_b, 1)
+        segment.set_neighbors(point_a, point_b) # there is a neighbor present at both endpoints of this segment
+        segment.density = 100
+        segment.elasticity = 1
+        segment.friction = 0.7
+    if body in space.bodies:
+        space.add(body)
+    # return segment_list

@@ -4,7 +4,7 @@ side.py contains the definition for the Side class.
 
 from utils import *
 
-class Side(pygame.sprite.Sprite):
+class Side:
     '''
         Represents one side of a Polygon. Using for better organization of data.
         
@@ -12,8 +12,7 @@ class Side(pygame.sprite.Sprite):
         instead of the whole polygon.
     '''
     
-    def __init__(self, parent, *, points):
-        super().__init__()
+    def __init__(self, parent: pygame.sprite.Sprite, *, points: list):
         self.parent = parent
         self.points = points
         
@@ -25,7 +24,7 @@ class Side(pygame.sprite.Sprite):
         
         # pygame setup, sprite attributes
         self.image = self.parent.get_subsurface()   # new surface inherits palette, colorkey, and alpha settings
-        self.color = random.choice(list(RING_PALLETE.keys()))
+        self.color = random.choice(list(POLY_PALLETE.keys()))
         self.draw()
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
@@ -33,10 +32,10 @@ class Side(pygame.sprite.Sprite):
         
         # game logic
         # using the color of the side to determine the collision type
-        self.shape.collision_type = RING_PALLETE[self.color]
+        self.shape.collision_type = POLY_PALLETE[self.color]
         self.neighbors = dict().fromkeys(['left', 'right', 'top', 'bottom']) # should only have left, right, above, below neighbors
             
-    def add_neighbor(self, type, neighbor):
+    def add_neighbor(self, type: str, neighbor):
         self.neighbors[type] = neighbor    
     
     def update_color(self, prev_side):
@@ -45,8 +44,8 @@ class Side(pygame.sprite.Sprite):
         then updates the collision type based on that color
         '''
         while self.color == prev_side.color:
-            self.color = random.choice(list(RING_PALLETE.keys()))
-        self.shape.collision_type = RING_PALLETE[self.color]
+            self.color = random.choice(list(POLY_PALLETE.keys()))
+        self.shape.collision_type = POLY_PALLETE[self.color]
     
     def draw(self):
         gfxdraw.filled_polygon(self.image, self.shape.get_vertices(), self.color)

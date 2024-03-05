@@ -34,9 +34,10 @@ class PolyBounce:
         self.space.gravity = (0, 0.1)
         self.ball_handler = self.space.add_wildcard_collision_handler(1) # handles collisions with ball and any other object
         self.ball_handler.begin = self.ball_collision
-        self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
+        # self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
-        Polygon.attach_segments(screen_corners, self.space.static_body, self.space)
+        
+        attach_segments(screen_corners, self.space.static_body, self.space)
         
         # font setup
         pygame.font.init()
@@ -73,7 +74,7 @@ class PolyBounce:
         # TODO Make some fancy display rect for the text to go onto and then blit that onto the screen
         
         for i, line in enumerate(player_info):
-            self.screen.blit(self.font.render(line, True, PALLETE['white']), (0, SCREEN_SIZE.y - 40 + 20 * i))
+            self.screen.blit(self.font.render(line, True, pygame.Color('white')), (0, SCREEN_SIZE.y - 40 + 20 * i))
     
     def handle_user_input(self):
         '''
