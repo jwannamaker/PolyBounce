@@ -3,56 +3,7 @@ polygon.py contains the definition for the Polygon class and the Side class.
 '''
 
 from utils import *
-
-class Side(pygame.sprite.Sprite):
-    '''
-        Represents one side of a Polygon. Using for better organization of data.
-        
-        Inherits Sprite in order to use collision of masks; Kill individual sides
-        instead of the whole polygon.
-    '''
-    def __init__(self, parent, *, points):
-        super().__init__()
-        self.parent = parent
-        self.points = points
-        
-        # pymunk setup
-        self.shape = pymunk.Poly(self.parent.body, self.points, radius=1)
-        self.shape.density = 1
-        self.shape.elasticity = 0.4
-        self.shape.friction = 0.4
-        
-        # pygame setup, sprite attributes
-        self.image = self.parent.get_subsurface()   # new surface inherits palette, colorkey, and alpha settings
-        self.color = random.choice(list(RING_PALLETE.keys()))
-        self.draw()
-        self.rect = self.image.get_rect()
-        self.mask = pygame.mask.from_surface(self.image)
-        self.parent.mask.draw(self.mask, (0, 0))    # add this mask to the parent mask
-        
-        # game logic
-        # using the color of the side to determine the collision type
-        self.shape.collision_type = RING_PALLETE[self.color]
-        self.neighbors = dict().fromkeys(['left', 'right', 'top', 'bottom']) # should only have left, right, above, below neighbors
-            
-    def add_neighbor(self, type, neighbor):
-        self.neighbors[type] = neighbor    
-    
-    def update_color(self, prev_side):
-        '''
-        Returns a random color that doesn't match either the color of the 
-        previous side or the color of the next side (if either are provided).
-        '''
-        # bumps out of loop once the color is NOT equal to previous color AND NOT 
-        # equal to next color
-        while self.color == prev_side.color:
-            self.color = random.choice(list(RING_PALLETE.keys()))
-    
-    def draw(self):
-        gfxdraw.filled_polygon(self.image, self.shape.get_vertices(), self.color)
-        
-        
-
+from side import Side
 
 
 class Polygon(pygame.sprite.Sprite):
@@ -78,7 +29,7 @@ class Polygon(pygame.sprite.Sprite):
         self.space = space
         self.body = pymunk.Body(0, 0, pymunk.Body.STATIC)
         self.body.position = float(CENTER.x), float(CENTER.y)
-        # Polygon.attach_segments(self.get_vertices(self.inner_radius), self.body, space)
+        Polygon.attach_segments(self.get_vertices(self.inner_radius), self.body, space)
 
         # Game logic setup
         self.rotating = False
@@ -94,8 +45,7 @@ class Polygon(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.sides = []
         self.get_sides()
-        super().add([i for i in self.sides])
-    
+        
     def get_vertices(self, radius, offset=0, tilt=-np.pi/2):
         ''' 
             Offset represents the offset of the center of the regular polygon 
@@ -123,23 +73,21 @@ class Polygon(pygame.sprite.Sprite):
             self.space.add(new_side.shape)
         
         # updating all the colors so that none of them have the same color adjacent
-        # TODO fix this to include 'weight's for each color choice. All unique
         prev = 0
         curr = 1
-        for i in range(self.N + 5):
-            curr += 1 % self.N - 1
+        for i in range(self.N + 1):
+            curr += 1 % self.N - 1 
             prev += 1 % self.N - 1
             self.sides[curr].update_color(self.sides[prev])
     
     @staticmethod
-    def attach_segments(vertices, body, space):
+    def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
         '''
             Returns the line segments connecting all the passed vertices together,
             adding to the specified body and making all segments neighbors.
             
             Effectively creates a polygon for pymunk purposes.
         '''
-        space.add(body)
         for i in range(len(vertices)):
             j = i + 1 if i < len(vertices) - 1 else 0
             point_a = vertices[i][0], vertices[i][1]
@@ -149,7 +97,10 @@ class Polygon(pygame.sprite.Sprite):
             segment.density = 100
             segment.elasticity = 0.5
             segment.friction = 0.7
-            space.add(segment)
+            # if segment not in body._shapes:
+            #     body.add(segment)
+        # if body not in space._bodies:
+        #     space.add(body)
         # return segment_list
     
     def get_subsurface(self):
