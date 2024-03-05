@@ -34,48 +34,6 @@ class Ball(pygame.sprite.Sprite):
         self.shape.friction = 0.78
         self.body.moment = pymunk.moment_for_circle(10, 0, self.radius)
         space.add(self.body, self.shape)
-    
-    # def collision(self, type):
-    #     collision_sprites = pygame.sprite.spritecollide(self, self.ring_group, False, pygame.sprite.collide_mask)
-    #     if collision_sprites:
-    #         for sprite in collision_sprites:
-    #         # sprite = collision_sprites[0]
-    #             offset_x = self.rect.topleft[0] - sprite.rect.topleft[0]
-    #             offset_y = self.rect.topleft[1] - sprite.rect.topleft[1]
-    #             relative = sprite.mask.overlap(self.mask, (offset_x, offset_y))
-                
-    #             # Convert the overlap coordinate into a coordinate on the screen
-    #             x = relative[0] + sprite.rect.topleft[0]
-    #             y = relative[1] + sprite.rect.topleft[1]
-    #             collision = Vector2(x, y)
-    #             print('Collision Detected @', collision)
-    #             collision_side = sprite.get_closest_side(collision)     # normalized vector 
-    #             bounced_velocity = self.velocity.reflect(collision_side)
-    #             if type == 'horizontal':
-    #                 # Collision is on the right
-    #                 if self.rect.right >= collision.x and self.prev_rect.right <= collision.x:
-    #                     self.rect.right = collision.x
-    #                     self.position.x = collision.x - self.radius
-    #                     self.velocity.x = bounced_velocity.x
-                        
-    #                 # Collision is on the left
-    #                 if self.rect.left <= collision.x and self.prev_rect.left >= collision.x:
-    #                     self.rect.left = collision.x
-    #                     self.position.x = collision.x + self.radius
-    #                     self.velocity.x = bounced_velocity.x 
-                
-    #             if type == 'vertical':
-    #                 # Collision is on the bottom
-    #                 if self.rect.bottom >= collision.y and self.prev_rect.bottom <= collision.y:
-    #                     self.rect.bottom = collision.y
-    #                     self.position.y = collision.y - self.radius
-    #                     self.velocity.y = bounced_velocity.y
-                        
-    #                 # Collision is on the top
-    #                 if self.rect.top <= collision.y and self.prev_rect.top >= collision.y:
-    #                     self.rect.top = collision.y
-    #                     self.position.y = collision.y + self.radius
-    #                     self.velocity.y = bounced_velocity.y
 
     def change_color(self, data):
         ''' 
