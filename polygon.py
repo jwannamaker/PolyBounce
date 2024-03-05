@@ -31,10 +31,10 @@ class Side(pygame.sprite.Sprite):
         self.parent.mask.draw(self.mask, (0, 0))    # add this mask to the parent mask
         
         # game logic
-        
+        self.neighbors = dict().fromkeys(['left', 'right', 'top', 'bottom']) # should only have left, right, above, below neighbors
             
     def add_neighbor(self, type, neighbor):
-        pass    
+        self.neighbors[type] = neighbor    
     
     def update_color(self, prev_side, next_side):
         '''

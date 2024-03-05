@@ -31,7 +31,7 @@ class PolyBounce:
         
         # pymunk setup
         self.space = pymunk.Space()
-        self.space.gravity = (0, 0.8)
+        self.space.gravity = (0, 0.1)
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         self.wall_body = pymunk.Body(0, 0, body_type=pymunk.Body.STATIC)
         screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
