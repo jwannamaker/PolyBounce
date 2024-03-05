@@ -25,6 +25,7 @@ class Ball(pygame.sprite.Sprite):
         
         self.mask = pygame.mask.from_surface(self.image)
         
+        # pymunk setup
         self.body = pymunk.Body(0, 0, pymunk.Body.DYNAMIC)
         self.body.position = float(self.position.x), float(self.position.y)
         self.shape = pymunk.Circle(self.body, self.radius)
@@ -75,12 +76,21 @@ class Ball(pygame.sprite.Sprite):
     #                     self.rect.top = collision.y
     #                     self.position.y = collision.y + self.radius
     #                     self.velocity.y = bounced_velocity.y
+
+    def change_color(self, data):
+        ''' 
+        Change the color of the ball according to the dict item passed in data.
+        (color, collision_type)
+        '''
+        self.color, self.shape.collision_type = data
             
     def update(self, dt):
+        ''' 
+        Update the ball according to 
+            the timestep (dt), 
+            the velocity adjustments by checking if shift is being held down or not
+        '''
         self.position = pymunk.pygame_util.to_pygame(self.body.position, self.image)
-        
-        
-        # self.rect.topleft = self.position - Vector2(self.radius)
         
     def draw(self, surface):
         '''
@@ -88,6 +98,7 @@ class Ball(pygame.sprite.Sprite):
             the topleft is positioned. Necessary because .blit() takes the 
             topleft as the second argument.
         '''
+        pygame.draw.circle(self.image, self.color, [self.radius, self.radius], self.radius)
         self.rect.topleft = self.position - Vector2(self.radius)
         surface.blit(self.image, self.rect.topleft) 
         

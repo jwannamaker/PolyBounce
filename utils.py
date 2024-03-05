@@ -13,12 +13,14 @@ DATA_DIR = os.path.join(MAIN_DIR, 'data')
 SCREEN_SIZE = Vector2(1280, 720)
 CENTER = Vector2(SCREEN_SIZE // 2)
 
+# every color corresponds to a collision type
 RING_PALLETE = {
-    'white': (250, 250, 250),
-    'pink': (201, 93, 177),
-    'light-purple': (137, 100, 187),
-    'blue': (157, 169, 214),
-    'cyan': (144, 239, 240)
+    (250, 250, 250): 1,
+    (201, 93, 177): 2,
+    (137, 100, 187): 3,
+    (157, 169, 214): 4,
+    (144, 239, 240): 5,
+    (255, 100, 100): 6
 }
 PALLETE = {
     'white': (250, 250, 250),

@@ -32,6 +32,8 @@ class PolyBounce:
         # pymunk setup
         self.space = pymunk.Space()
         self.space.gravity = (0, 0.1)
+        self.ball_handler = self.space.add_wildcard_collision_handler(1) # handles collisions with ball and any other object
+        self.ball_handler.begin = self.ball_collision
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         self.wall_body = pymunk.Body(0, 0, body_type=pymunk.Body.STATIC)
         screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
@@ -105,6 +107,9 @@ class PolyBounce:
         '''
         self.ring_group.update(self.dt)
         self.player_group.update(self.dt)
+    
+    def ball_collision(self, arbiter, space, data):
+        self.player_ball.color = arbiter.
     
     def draw(self):
         '''
