@@ -12,7 +12,7 @@ class Polygon(pygame.sprite.Sprite):
     **Is not a sprite, but contains a group of sprites?
     '''
     
-    def __init__(self, space, radius, N, wall_thickness=50):
+    def __init__(self, space: pymunk.Space, radius, N: int, wall_thickness=50):
         super().__init__()
         self.radius = radius
         self.N = N          
@@ -29,7 +29,7 @@ class Polygon(pygame.sprite.Sprite):
         self.space = space
         self.body = pymunk.Body(0, 0, pymunk.Body.STATIC)
         self.body.position = float(CENTER.x), float(CENTER.y)
-        Polygon.attach_segments(self.get_vertices(self.inner_radius), self.body, space)
+        attach_segments(self.get_vertices(self.inner_radius), self.body, self.space)
 
         # Game logic setup
         self.rotating = False
@@ -70,12 +70,11 @@ class Polygon(pygame.sprite.Sprite):
             outer = (self.vertices[i][0], self.vertices[i][1]), (self.vertices[j][0], self.vertices[j][1])
             new_side = Side(self, points=[inner[0], inner[1], outer[0], outer[1]])
             self.sides.append(new_side)
-            self.space.add(new_side.shape)
         
         # updating all the colors so that none of them have the same color adjacent
         prev = 0
         curr = 1
-        for i in range(self.N):
+        for i in range(self.N * 2):
             curr += 1 % self.N - 1 
             prev += 1 % self.N - 1
             self.sides[curr].update_color(self.sides[prev])
@@ -86,6 +85,13 @@ class Polygon(pygame.sprite.Sprite):
             settings of this surface.
         '''
         return self.image.subsurface((0, 0, self.radius * 2, self.radius * 2))
+    
+    def get_color_at(self, x, y):
+        '''
+            Get the color at the given x and y coordinates using pymunk utils and
+            pygame masks
+        '''
+        
     
     def draw(self, surface):
         for side in self.sides:

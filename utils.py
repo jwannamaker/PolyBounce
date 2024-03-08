@@ -34,6 +34,22 @@ def load_font():
     font_file = os.path.join(DATA_DIR, 'Emulogic-zrEw.ttf')
     return pygame.font.Font(font_file, 12)
 
+def create_walls(corners, space: pymunk.Space):
+    '''
+        uses the static body that is included in every pymunk space
+    '''                                                            
+    for i in range(len(corners)):
+        j = i + 1 if i < len(corners) - 1 else 0
+        point_a = corners[i][0], corners[i][1]
+        point_b = corners[j][0], corners[j][1]
+        segment = pymunk.Segment(space.static_body, point_a, point_b, 3)
+        
+        # neighbor present at both endpoints of this segment
+        segment.set_neighbors(point_a, point_b) 
+        segment.density = 100
+        segment.elasticity = 1
+        segment.friction = 0.7
+                                                                       
 def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
     '''
         Returns the line segments connecting all the passed vertices together,
@@ -45,11 +61,11 @@ def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
         j = i + 1 if i < len(vertices) - 1 else 0
         point_a = vertices[i][0], vertices[i][1]
         point_b = vertices[j][0], vertices[j][1]
-        segment = pymunk.Segment(body, point_a, point_b, 1)
-        segment.set_neighbors(point_a, point_b) # there is a neighbor present at both endpoints of this segment
+        segment = pymunk.Segment(body, point_a, point_b, 3)
+        
+        # neighbor present at both endpoints of this segment
+        segment.set_neighbors(point_a, point_b) 
         segment.density = 100
         segment.elasticity = 1
         segment.friction = 0.7
-    if body in space.bodies:
-        space.add(body)
     # return segment_list
