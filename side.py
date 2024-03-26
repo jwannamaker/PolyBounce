@@ -12,7 +12,7 @@ class Side:
         instead of the whole polygon.
     '''
     
-    def __init__(self, parent: pygame.sprite.Sprite, *, points: list):
+    def __init__(self, parent: pygame.sprite.Sprite | pymunk.Body, *, points: list):
         self.parent = parent
         self.points = points
         

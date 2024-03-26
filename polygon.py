@@ -21,6 +21,7 @@ class Polygon(pygame.sprite.Sprite):
         # Calculated properties
         self.inner_radius = self.radius - self.wall_thickness
         self.position = Vector2(CENTER)
+        self.angle = 0          # The current angle of rotation of the whole polygon
         self.theta = (2 * np.pi) / self.N   # Internal angle in radians
         
         # pymunk setup

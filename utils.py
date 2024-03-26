@@ -68,4 +68,5 @@ def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
         segment.density = 100
         segment.elasticity = 1
         segment.friction = 0.7
+        space.add(segment)
     # return segment_list
