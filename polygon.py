@@ -21,7 +21,8 @@ class Polygon(pygame.sprite.Sprite):
         # Calculated properties
         self.inner_radius = self.radius - self.wall_thickness
         self.position = Vector2(CENTER)
-        self.angle = 0          # The current angle of rotation of the whole polygon
+        self.angle = 0              # The current angle of rotation of the whole polygon
+        self.rotate_done = False    # Current state of rotation of the whole polygon
         self.theta = (2 * np.pi) / self.N   # Internal angle in radians
         
         # pymunk setup
@@ -64,13 +65,13 @@ class Polygon(pygame.sprite.Sprite):
             This method organizes all the necessary properties of each side into
             a list attribute of this Polygon.
         '''
-        self.space.add(self.body)
         for i in range(self.N):
             j = i + 1 if i < self.N - 1 else 0
             inner = (self.inner_vertices[i][0], self.inner_vertices[i][1]), (self.inner_vertices[j][0], self.inner_vertices[j][1])
             outer = (self.vertices[i][0], self.vertices[i][1]), (self.vertices[j][0], self.vertices[j][1])
             new_side = Side(self, points=[inner[0], inner[1], outer[0], outer[1]])
             self.sides.append(new_side)
+        self.space.add(self.body)
         
         # updating all the colors so that none of them have the same color adjacent
         prev = 0
@@ -92,7 +93,8 @@ class Polygon(pygame.sprite.Sprite):
             Get the color at the given x and y coordinates using pymunk utils and
             pygame masks
         '''
-        
+        local_coord = pymunk.pygame_util.from_pygame((x, y))
+        return self.image.get_at(local_coord)
     
     def draw(self, surface):
         for side in self.sides:
@@ -110,7 +112,7 @@ class Polygon(pygame.sprite.Sprite):
         # TODO Apply some amount of rotation if needed, checking in self.rotation_state
         
     def cw_rotate(self, dt):
-        print(f'Applying angular velocity of {dt} for time length {dt}')
+        pass
         
     def ccw_rotate(self, dt):   
-        print(f'Applying angular velocity of {dt} for time legnth {dt}')
+        pass

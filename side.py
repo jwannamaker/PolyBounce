@@ -30,18 +30,22 @@ class Side:
         self.mask = pygame.mask.from_surface(self.image)
         self.parent.mask.draw(self.mask, (0, 0))    # add this mask to the parent mask
         
+        
         # game logic
         # using the color of the side to determine the collision type
-        self.shape.collision_type = POLY_PALLETE[self.color]
+        self.shape.collision_type = 2 # POLY_PALLETE[self.color]
         self.neighbors = dict().fromkeys(['left', 'right', 'top', 'bottom']) # should only have left, right, above, below neighbors
             
     def add_neighbor(self, type: str, neighbor):
+        # TODO: Add neighbors in the polygon class, when the sides are created
         self.neighbors[type] = neighbor    
     
     def update_color(self, prev_side):
         '''
         Returns a random color that doesn't match the color of the previous side,
         then updates the collision type based on that color
+        TODO: Change method so the color can't match the color of the existing 
+        neighbors.
         '''
         while self.color == prev_side.color:
             self.color = random.choice(list(POLY_PALLETE.keys()))

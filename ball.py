@@ -33,6 +33,7 @@ class Ball(pygame.sprite.Sprite):
         self.shape.elasticity = 0.9
         self.shape.friction = 0.78
         self.body.moment = pymunk.moment_for_circle(10, 0, self.radius)
+        self.shape.collision_type = 1
         space.add(self.body, self.shape)
 
     def get_color(self):
@@ -42,7 +43,8 @@ class Ball(pygame.sprite.Sprite):
         ''' 
         Change the color and collision type of the ball according to color
         '''
-        self.color, self.shape.collision_type = color, POLY_PALLETE[color]
+        self.color = color
+        self.shape.collision_type = POLY_PALLETE[color]
             
     def update(self, dt):
         ''' 
@@ -50,7 +52,7 @@ class Ball(pygame.sprite.Sprite):
             the timestep (dt), 
             the velocity adjustments by checking if shift is being held down or not
         '''
-        self.shape.collision_type = POLY_PALLETE[self.color] # getting the collision type based on the current color
+        # self.shape.collision_type = POLY_PALLETE[self.color] # getting the collision type based on the current color
         self.position = pymunk.pygame_util.to_pygame(self.body.position, self.image)
         
     def draw(self, surface):

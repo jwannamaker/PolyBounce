@@ -68,5 +68,13 @@ def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
         segment.density = 100
         segment.elasticity = 1
         segment.friction = 0.7
-        space.add(segment)
+        segment.collision_type = 2 # TODO change to the appropriate type for a color or a category or something more sophisticated than hard coded for chrissake
+        # space.add(segment)
     # return segment_list
+    
+def rotate_about_center(surface: pygame.Surface, image, angle):
+    '''
+    Rotates the image, displays onto the surface. Pivots around the center
+    '''
+    new_rect = pygame.transform.rotate(image, angle).get_rect()
+    # new_rect.center = 

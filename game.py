@@ -32,10 +32,10 @@ class PolyBounce:
         # pymunk setup
         self.space = pymunk.Space()
         self.space.gravity = (0, 0.1)
-        self.handlers = [self.space.add_wildcard_collision_handler(i) for i in list(POLY_PALLETE.values())]
-        for handler in self.handlers:
-            handler.begin = self.ball_collision_start
-            handler.separate = self.ball_collision_end
+        # self.handlers = [self.space.add_wildcard_collision_handler(i) for i in list(POLY_PALLETE.values())]
+        self.handler = self.space.add_collision_handler(1, 2) # 1 - ball, 2 - nonball
+        self.handler.begin = self.ball_collision_start
+        self.handler.separate = self.ball_collision_end
         # self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
         create_walls(screen_corners, self.space)
@@ -112,10 +112,11 @@ class PolyBounce:
     def ball_collision_start(self, arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
         collision_color = self.inner_ring.get_color_at(arbiter.contact_point_set)
         self.player_ball.change_color(collision_color)
-    
+        print('Collision success')
     
     def ball_collision_end(self, arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
         self.inner_ring.kill()
+        # TODO make all of the other rings shrink to the same radius as the inner ring
         
     
     def draw(self):
