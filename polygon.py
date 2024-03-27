@@ -3,27 +3,46 @@ polygon.py contains the definition for the Polygon class and the Side class.
 '''
 
 from utils import *
-from side import Side
 
-
+class Side(NamedTuple):
+    '''
+    Represents one side of a Polygon. Using for better organization of data.
+    '''
+    color: pygame.Color
+    shape: pymunk.Shape
+            
+class SideSprite(pygame.sprite.Sprite):
+    ''' 
+    IDK if i reALLY need this class in particular? ig I'll be finding out ??
+    Inherits Sprite in order to use collision of masks; Kill individual sides
+    instead of the whole polygon.
+    '''
+    def __init__(self):
+        super().__init__()
+    
+    def update(self):
+        pass
+    
+    def draw(self):
+        gfxdraw.filled_polygon(self.image, self.shape.get_vertices(), self.color)
+        
+        
 class Polygon(pygame.sprite.Sprite):
     '''
     Polygon ring rotates using  Q/A (counterclockwise) and E/D (clockwise).
-    **Is not a sprite, but contains a group of sprites?
+    **Holds a group of sprites as a dict for the sides
     '''
     
-    def __init__(self, space: pymunk.Space, radius, N: int, wall_thickness=50):
+    def __init__(self, space: pymunk.Space, radius: int, N: int, wall_thickness=50):
         super().__init__()
         self.radius = radius
         self.N = N          
         self.wall_thickness = wall_thickness
         
         # Calculated properties
-        self.inner_radius = self.radius - self.wall_thickness
         self.position = Vector2(CENTER)
-        self.angle = 0              # The current angle of rotation of the whole polygon
-        self.rotate_done = False    # Current state of rotation of the whole polygon
-        self.theta = (2 * np.pi) / self.N   # Internal angle in radians
+        self.theta = (2 * np.pi) / self.N               # Exterior angle in radians
+        self.inner_radius = self.radius - self.wall_thickness
         
         # pymunk setup
         # TODO: figure out how to deal with Kinematic body types so it can rotate
@@ -34,14 +53,17 @@ class Polygon(pygame.sprite.Sprite):
         attach_segments(self.get_vertices(self.inner_radius), self.body, self.space)
 
         # Game logic setup
-        self.rotating = False
+        self.angle = 0              # Angle of rotation of the whole polygon
+        self.rotating = False       # State of rotation of the whole polygon
         
-        # Pygame properties
+        # Pygame.Sprite properties
         self.image = pygame.Surface((self.radius * 2, self.radius * 2))
         self.image.fill((0, 0, 0))
         self.image.set_colorkey((0, 0, 0))
+        
         self.vertices = self.get_vertices(self.radius, self.radius)
         self.inner_vertices = self.get_vertices(self.inner_radius, self.radius)
+        
         self.rect = self.image.get_rect()
         self.rect.center = self.position
         self.mask = pygame.mask.from_surface(self.image)
@@ -60,26 +82,44 @@ class Polygon(pygame.sprite.Sprite):
             vertices.append(Vector2(x, y))
         return vertices
         
+    def get_side_colors(self):
+        random.shuffle(POLY_PALLETE)
+        return random.sample(POLY_PALLETE, self.N)
+    
     def get_sides(self):
         '''
             This method organizes all the necessary properties of each side into
-            a list attribute of this Polygon.
+            a datastructure of this Polygon.
         '''
+        colors = self.get_side_colors()
         for i in range(self.N):
             j = i + 1 if i < self.N - 1 else 0
             inner = (self.inner_vertices[i][0], self.inner_vertices[i][1]), (self.inner_vertices[j][0], self.inner_vertices[j][1])
             outer = (self.vertices[i][0], self.vertices[i][1]), (self.vertices[j][0], self.vertices[j][1])
-            new_side = Side(self, points=[inner[0], inner[1], outer[0], outer[1]])
+            points = [inner[0], inner[1], outer[0], outer[1]]
+            
+            # pymunk setup
+            side_shape = pymunk.Poly(self.body, points, radius=1)
+            side_shape.density = 1
+            side_shape.elasticity = 0.4
+            side_shape.friction = 0.4
+            
+            # pygame setup, sprite attributes
+            side_sprite = pygame.sprite.Sprite(self.groups())
+            side_sprite.update = self.update    # not sure if this line is really going to work
+            side_sprite.image = self.get_subsurface()   # new surface inherits palette, colorkey, and alpha settings
+            self.draw_side()
+            self.rect = self.image.get_rect()
+            mask = pygame.mask.from_surface(self.image)
+            self.mask.draw(mask, (0, 0))    # add this mask to the parent mask
+            
+            # game logic setup
+            # using the color of the side to determine the collision type
+            side_shape.collision_type = POLY_PALLETE[colors[i]]
+        
+            new_side = Side(side_shape, side_sprite)
             self.sides.append(new_side)
         self.space.add(self.body)
-        
-        # updating all the colors so that none of them have the same color adjacent
-        prev = 0
-        curr = 1
-        for i in range(self.N * 2):
-            curr += 1 % self.N - 1 
-            prev += 1 % self.N - 1
-            self.sides[curr].update_color(self.sides[prev])
     
     def get_subsurface(self):
         '''

@@ -5,6 +5,7 @@
 import os, random, pygame, pymunk, pymunk.pygame_util
 import numpy as np
 from collections import deque
+from typing import NamedTuple
 from pygame import Vector2, gfxdraw
 
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
@@ -37,7 +38,8 @@ def load_font():
 def create_walls(corners, space: pymunk.Space):
     '''
         uses the static body that is included in every pymunk space
-    '''                                                            
+    '''                                
+    segment_list = []                            
     for i in range(len(corners)):
         j = i + 1 if i < len(corners) - 1 else 0
         point_a = corners[i][0], corners[i][1]
@@ -49,6 +51,8 @@ def create_walls(corners, space: pymunk.Space):
         segment.density = 100
         segment.elasticity = 1
         segment.friction = 0.7
+        segment_list.append(segment)
+    space.add(*segment_list)
                                                                        
 def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
     '''
@@ -57,6 +61,7 @@ def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
         
         Effectively creates a polygon for pymunk purposes.
     '''
+    segment_list = []
     for i in range(len(vertices)):
         j = i + 1 if i < len(vertices) - 1 else 0
         point_a = vertices[i][0], vertices[i][1]
@@ -69,7 +74,8 @@ def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
         segment.elasticity = 1
         segment.friction = 0.7
         segment.collision_type = 2 # TODO change to the appropriate type for a color or a category or something more sophisticated than hard coded for chrissake
-        # space.add(segment)
+        segment_list.append(segment)
+    space.add(*segment_list)
     # return segment_list
     
 def rotate_about_center(surface: pygame.Surface, image, angle):
@@ -78,3 +84,20 @@ def rotate_about_center(surface: pygame.Surface, image, angle):
     '''
     new_rect = pygame.transform.rotate(image, angle).get_rect()
     # new_rect.center = 
+    
+def begin(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
+    print('Collision began this step')
+    print('Must get from pygame mask collision now what the colors are')
+    print('Then populate the data dict with that collision information')
+    collision_color = data['inner_ring'].get_color_at(arbiter.contact_point_set)
+    data['ball'] = 'ball obj placeholder'
+    data['side'] = 'side obj placeholder'
+
+def pre_solve(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
+    print('Collision success')
+
+def post_solve(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
+    print('Collision stuff')
+    
+def separate(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
+    print('Separation success')

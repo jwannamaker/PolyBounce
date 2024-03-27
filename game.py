@@ -33,12 +33,6 @@ class PolyBounce:
         self.space = pymunk.Space()
         self.space.gravity = (0, 0.1)
         # self.handlers = [self.space.add_wildcard_collision_handler(i) for i in list(POLY_PALLETE.values())]
-        self.handler = self.space.add_collision_handler(1, 2) # 1 - ball, 2 - nonball
-        self.handler.begin = self.ball_collision_start
-        self.handler.separate = self.ball_collision_end
-        # self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
-        screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
-        create_walls(screen_corners, self.space)
         
         # font setup
         pygame.font.init()
@@ -57,6 +51,18 @@ class PolyBounce:
         
         self.player_ball = Ball(self.space, 25)
         self.player_group = pygame.sprite.Group(self.player_ball)
+        
+        # Now that all the game objects are created, I can add collision handling for them
+        self.handler = self.space.add_collision_handler(1, 2) # 1 - ball, 2 - nonball ---> Can easily transition into using bitmasking for this
+        self.handler.data['ball'] = self.player_ball
+        self.handler.data['']
+        self.handler.begin = begin
+        self.handler.pre_solve = pre_solve
+        self.handler.post_solve = post_solve
+        self.handler.separate = separate
+        # self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
+        screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
+        create_walls(screen_corners, self.space)
         
     def start(self):
         self.running = True
@@ -108,11 +114,6 @@ class PolyBounce:
         '''
         self.ring_group.update(self.dt)
         self.player_group.update(self.dt)
-    
-    def ball_collision_start(self, arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
-        collision_color = self.inner_ring.get_color_at(arbiter.contact_point_set)
-        self.player_ball.change_color(collision_color)
-        print('Collision success')
     
     def ball_collision_end(self, arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
         self.inner_ring.kill()
