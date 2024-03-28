@@ -23,27 +23,24 @@ class PolyBounce:
         # pygame setup
         pygame.init()
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
-        pygame.display.set_caption('Johnny Tries Physics and Stuff!')
+        pygame.display.set_caption('PolyBounce')
+        pygame.font.init()
+        self.font = load_font()
+        self.background = pygame.Surface(self.screen.get_size()).convert()
+        self.background.fill(pygame.Color('black'))
+        self.screen.blit(self.background, (0, 0))
         self.clock = pygame.time.Clock()
-        self.fps = 1
+        self.fps = 10
         self.dt = 1 / self.fps       
         self.running = False
         
-        # pymunk setup
+        # Pymunk setup
         self.space = pymunk.Space()
         self.space.gravity = (0, 0.1)
-        # self.handlers = [self.space.add_wildcard_collision_handler(i) for i in list(POLY_PALLETE.values())]
         
-        # font setup
-        pygame.font.init()
-        self.font = load_font()
-        
-        # background setup
-        self.background = pygame.Surface(self.screen.get_size()).convert()
-        self.background.fill(BACKGROUND_PALLETE['black'])
-        self.screen.blit(self.background, (0, 0))
-        
-        # game objects setup
+        # Entities setup
+        screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
+        create_walls(screen_corners, self.space)
         self.inner_ring = Polygon(self.space, 250, 6)
         self.mid_ring = Polygon(self.space, 300, 6)
         self.outer_ring = Polygon(self.space, 350, 6)
@@ -55,14 +52,12 @@ class PolyBounce:
         # Now that all the game objects are created, I can add collision handling for them
         self.handler = self.space.add_collision_handler(1, 2) # 1 - ball, 2 - nonball ---> Can easily transition into using bitmasking for this
         self.handler.data['ball'] = self.player_ball
-        self.handler.data['']
+        self.handler.data['inner_ring'] = self.inner_ring
         self.handler.begin = begin
         self.handler.pre_solve = pre_solve
         self.handler.post_solve = post_solve
         self.handler.separate = separate
-        # self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
-        screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
-        create_walls(screen_corners, self.space)
+        self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         
     def start(self):
         self.running = True
@@ -112,13 +107,9 @@ class PolyBounce:
             Updates the game objects (player_group, ring_group, etc) according 
             to the current game state.
         '''
+        self.handler.data['inner_ring'] = self.inner_ring
         self.ring_group.update(self.dt)
         self.player_group.update(self.dt)
-    
-    def ball_collision_end(self, arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
-        self.inner_ring.kill()
-        # TODO make all of the other rings shrink to the same radius as the inner ring
-        
     
     def draw(self):
         '''
@@ -136,6 +127,7 @@ class PolyBounce:
         # TODO: Add some logic to address the need for semi-fixed framerate
         self.clock.tick(self.fps)
         self.space.step(self.dt)
+        # self.space.debug_draw(self.draw_options)
         pygame.display.flip()
         
     def main_loop(self):

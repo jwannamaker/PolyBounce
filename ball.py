@@ -5,10 +5,10 @@
 from utils import *
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, space, radius, color=random.choice(list(POLY_PALLETE.keys()))):
+    def __init__(self, space, radius):
         super().__init__()
         self.radius = radius
-        self.color = color
+        self.color = random.choice(PALLETE)
         self.position = CENTER.copy()
         self.prev_position = self.position.copy()
         self.velocity = Vector2(0, 0)
@@ -18,8 +18,8 @@ class Ball(pygame.sprite.Sprite):
         self.image.fill((0, 0, 0))
         self.image.set_colorkey((0, 0, 0))
         
-        pygame.draw.circle(self.image, self.color, [self.radius, self.radius], self.radius)
-        self.rect = pygame.FRect(self.image.get_rect())
+        pygame.draw.circle(self.image, PALLETE_DICT[self.color].value, [self.radius, self.radius], self.radius)
+        self.rect = pygame.Rect(self.image.get_rect())
         self.rect.topleft = self.position - Vector2(self.radius)
         self.prev_rect = self.rect.copy()
         
@@ -33,26 +33,16 @@ class Ball(pygame.sprite.Sprite):
         self.shape.elasticity = 0.9
         self.shape.friction = 0.78
         self.body.moment = pymunk.moment_for_circle(10, 0, self.radius)
-        self.shape.collision_type = 1
+        self.shape.collision_type = PALLETE_DICT[self.color].collision_type
         space.add(self.body, self.shape)
-
-    def get_color(self):
-        return self.color
-    
-    def change_color(self, color):
-        ''' 
-        Change the color and collision type of the ball according to color
-        '''
-        self.color = color
-        self.shape.collision_type = POLY_PALLETE[color]
-            
+        
     def update(self, dt):
         ''' 
         Update the ball according to 
             the timestep (dt), 
             the velocity adjustments by checking if shift is being held down or not
         '''
-        # self.shape.collision_type = POLY_PALLETE[self.color] # getting the collision type based on the current color
+        self.shape.collision_type = PALLETE_DICT[self.color].collision_type
         self.position = pymunk.pygame_util.to_pygame(self.body.position, self.image)
         
     def draw(self, surface):
@@ -61,7 +51,7 @@ class Ball(pygame.sprite.Sprite):
             the topleft is positioned. Necessary because .blit() takes the 
             topleft as the second argument.
         '''
-        pygame.draw.circle(self.image, self.color, [self.radius, self.radius], self.radius)
+        pygame.draw.circle(self.image, PALLETE_DICT[self.color].value, [self.radius, self.radius], self.radius)
         self.rect.topleft = self.position - Vector2(self.radius)
         surface.blit(self.image, self.rect.topleft) 
         

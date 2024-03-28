@@ -14,45 +14,37 @@ DATA_DIR = os.path.join(MAIN_DIR, 'data')
 SCREEN_SIZE = Vector2(1280, 720)
 CENTER = Vector2(SCREEN_SIZE // 2)
 
-# every color corresponds to a collision type
-POLY_PALLETE = {
-    (250, 250, 250): 1, # white
-    (201, 93, 177): 2,  # pink
-    (150, 100, 187): 3, # light-purple
-    (150, 170, 200): 4, # blue
-    (144, 239, 240): 5, # cyan
-    (255, 100, 100): 6, # red
-    (170, 224, 241): 7  # light-blue
+class COLOR(NamedTuple):
+    value: tuple
+    collision_type: int
+
+PALLETE_DICT = {
+    'blue': COLOR((150, 170, 200), 1),
+    'cyan': COLOR((144, 239, 240), 2),
+    'drk-purple': COLOR((63, 45, 112), 3),
+    'lt-blue': COLOR((170, 224, 241), 4),
+    'lt-purple': COLOR((150, 100, 187), 5),
+    'magenta': COLOR((129, 55, 113), 6),
+    'mid-blue': COLOR((83, 91, 113), 7),
+    'pink': COLOR((201, 93, 177), 8),
+    'red': COLOR((255, 100, 100), 9),
+    'white': COLOR((250, 250, 250), 10)
 }
-BACKGROUND_PALLETE = {
-    'black': (10, 10, 10),
-    'magenta': (129, 55, 113),
-    'dark-purple': (63, 45, 112),
-    'grey-blue': (83, 91, 113)
-}
+PALLETE = list(PALLETE_DICT.keys())
 
 def load_font():
     font_file = os.path.join(DATA_DIR, 'Emulogic-zrEw.ttf')
     return pygame.font.Font(font_file, 12)
 
 def create_walls(corners, space: pymunk.Space):
-    '''
-        uses the static body that is included in every pymunk space
-    '''                                
-    segment_list = []                            
     for i in range(len(corners)):
-        j = i + 1 if i < len(corners) - 1 else 0
-        point_a = corners[i][0], corners[i][1]
-        point_b = corners[j][0], corners[j][1]
-        segment = pymunk.Segment(space.static_body, point_a, point_b, 3)
-        
-        # neighbor present at both endpoints of this segment
-        segment.set_neighbors(point_a, point_b) 
+        j = (i + 1) % len(corners)
+        segment = pymunk.Segment(space.static_body, corners[i], corners[j], 3)
+        segment.set_neighbors(corners[i], corners[j])  # neighbor present at both endpoints of this segment
         segment.density = 100
-        segment.elasticity = 1
+        segment.elasticity = 0.999
         segment.friction = 0.7
-        segment_list.append(segment)
-    space.add(*segment_list)
+        space.add(segment)
                                                                        
 def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
     '''
@@ -75,9 +67,15 @@ def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
         segment.friction = 0.7
         segment.collision_type = 2 # TODO change to the appropriate type for a color or a category or something more sophisticated than hard coded for chrissake
         segment_list.append(segment)
-    space.add(*segment_list)
-    # return segment_list
-    
+    # space.add(*segment_list)
+    return segment_list
+
+def get_shuffled_colors(N):
+    ''' Shuffles the colors and returns N of them without repeats. '''
+    global PALLETE
+    random.shuffle(PALLETE)
+    return random.sample(PALLETE, N)
+
 def rotate_about_center(surface: pygame.Surface, image, angle):
     '''
     Rotates the image, displays onto the surface. Pivots around the center
