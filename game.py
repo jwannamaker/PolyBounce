@@ -36,7 +36,7 @@ class PolyBounce:
         
         # Pymunk setup
         self.space = pymunk.Space()
-        self.space.gravity = (0, 0.1)
+        self.space.gravity = (0, 10)
         
         # Entities setup
         screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
@@ -70,13 +70,13 @@ class PolyBounce:
         player_info = []
         # self.space.debug_draw(self.draw_options)
         # player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Info', self.player_ball.body., self.player_ball.position[1]))
+        player_info.append('{:15s} {:17.2f}'.format('SCORE', 0))
         player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Position', self.player_ball.body.position[0], self.player_ball.body.position[1]))
         player_info.append('{:15s} {:8.2f} {:8.2f}'.format('Velocity', self.player_ball.body.velocity[0], self.player_ball.body.velocity[1]))
-        
         # TODO Make some fancy display rect for the text to go onto and then blit that onto the screen
         
         for i, line in enumerate(player_info):
-            self.screen.blit(self.font.render(line, True, pygame.Color('white')), (0, SCREEN_SIZE.y - 40 + 20 * i))
+            self.screen.blit(self.font.render(line, True, pygame.Color('white')), (SCREEN_SIZE.x / 2, 20 * i))
     
     def handle_user_input(self):
         '''
@@ -91,7 +91,6 @@ class PolyBounce:
                     self.running = False
                 if event.key == pygame.K_LSHIFT:
                     self.player_ball.add_key_held('slow')
-                    
                     
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LSHIFT:
