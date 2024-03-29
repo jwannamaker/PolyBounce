@@ -14,6 +14,8 @@ class PolyBounce:
         pygame.display.set_caption('PolyBounce')
         pygame.font.init()
         self.font = load_font()
+        self.background = pygame.Surface(self.screen.get_size()).convert()
+        self.background.fill(pygame.Color('black'))
         self.clock = pygame.time.Clock()
         self.fps = 50
         self.dt = 1 / self.fps       
@@ -22,7 +24,7 @@ class PolyBounce:
         # Entities setup
         self.space = pymunk.space.Space()
         # pymunk.pygame_util.positive_y_is_up = True
-        self.space.gravity = (0, 10)
+        self.space.gravity = (0, 100)
         
         screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
         create_walls(screen_corners, self.space)
@@ -72,13 +74,8 @@ class PolyBounce:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                if event.key == pygame.K_LSHIFT:
-                    self.player_ball.add_key_held('slow')
                     
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LSHIFT:
-                    self.player_ball.remove_key_held('slow')
-                    
                 if event.key == pygame.K_q:
                     self.inner_ring.ccw_rotate(self.dt)
                 if event.key == pygame.K_e:
@@ -93,16 +90,14 @@ class PolyBounce:
         self.ring_group.update()
         self.player_group.update()
     
-    def draw(self):
-        '''
-            Draw the new state of each object in the game onto the screen.
-        '''
+    def render(self):
         self.screen.blit(self.background, (0, 0))
         self.display_stats()
-        self.ring_group.draw(self.screen)
-        self.player_ball.draw(self.screen)
+        for ring in self.ring_group:
+            ring.render()
+        self.player_ball.render()
         
-        # TODO: Add some logic to address the need for semi-fixed framerate
+        # TODO: Add some logic to address the need for semi-fixed framerate?
         self.clock.tick(self.fps)
         self.space.step(self.dt)
         self.space.debug_draw(self.draw_options)
@@ -112,7 +107,7 @@ class PolyBounce:
         while self.running:
             self.handle_user_input()
             self.process_game_logic()
-            self.draw()
+            self.render()
         pygame.quit()
         
 if __name__ == "__main__":

@@ -5,45 +5,38 @@ class PhysicsEntity(pygame.sprite.Sprite):
         super().__init__()
         self.game = game
         self.radius = radius
-        self.position = from_pygame(position)
+        self.position = round(position[0]), round(position[1]) # may need to change this between Vec2/Vector2/tuple
+        self.entity_type = 'non-player'
+        
         self.image = pygame.Surface((self.radius * 2, self.radius * 2))
         self.image.set_colorkey((0, 0, 0))
         self.color = random.choice(PALLETE)
         
-        self.body = pymunk.Body(0, 0, pymunk.Body.DYNAMIC)
-        self.shape = pymunk.Circle(self.body, self.radius, self.position)
-        # set the mass, moment in derived classes
-        # Then call physics/visual setup methods
+        self.body = pymunk.Body(0, 0, pymunk.Body.DYNAMIC) # can be modified in the derived class constructor
+        self.shape: pymunk.Shape = None # must be defined in the derived class constructor
     
     def set_visual_properties(self):
+        ''' must be called in derived class constructor '''
         self.rect = pygame.Rect(self.image.get_rect())
         self.rect.center = self.position
         self.mask = pygame.mask.from_surface(self.image)
     
-    def set_physics_properties(self):
+    def set_physics_properties(self, entity_type):
+        ''' must be called in derived class constructor '''
+        self.entity_type = entity_type
         self.body.position = self.position
-        if len(self.shapes) >= 1:
-            self.body.shapes.density = 1
-            self.body.shapes.elasticity = 0.999
-            self.body.shapes.friction = 0.78
+        if entity_type == 'player':
+            self.shape.density = 10
+            self.shape.elasticity = 0.456
+            self.shape.friction = 0.825
+            self.game.space.add(self.body, self.shape)
+        elif entity_type == 'non-player':
+            for side in self.sides.values():
+                side.shape.density = 1
+                side.shape.elasticity = 0.999
+                side.shape.friction = 0.789
             self.game.space.add(self.body)
-        else:
-            self.body.shape.density = 10
-            self.body.shape.elasticity = 0.4
-            self.body.shape.friction = 0.85
-            self.game.space.add(self.body, self.body.shape)
     
-    def draw(self):
-        self.rect.topleft = self.position - Vector2(self.radius)
-        self.game.screen.blit(self.image, self.rect.topleft)
-        
     def update(self):
-        self.shape.collision_type = get_collision_type(self.color)
-        self.position = pymunk.pygame_util.to_pygame(self.body.position, self.image)
-    
-    def add_key_held(self, key):
-        self.keys_held.append(key)
-        
-    def remove_key_held(self, key):
-        self.keys_held.remove(key)
-        
+        self.position = Vector2(self.body.position[0], self.body.position[1])
+        self.rect.topleft = self.position - Vector2(self.radius)

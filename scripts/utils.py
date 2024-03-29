@@ -90,24 +90,7 @@ def get_shuffled_colors(N):
     global PALLETE
     random.shuffle(PALLETE)
     return random.sample(PALLETE, N)
-
-def create_brick(polygon: pygame.sprite.Sprite, points, color):
-    ''' Adds a shape (poly) to the body of the polygon and draws a corresponding 
-        image to the polygon's sprite group (sides). '''
-    side_shape = pymunk.Poly(polygon.body, points, radius=1)
-    side_shape.collision_type = get_collision_type(color)
-    pymunk_points = side_shape.get_vertices()
-    sub_image: pygame.Surface = polygon.get_subsurface()
-    gfxdraw.filled_polygon(sub_image, pymunk_points, get_color(color))
     
-
-    side_sprite = pygame.sprite.Sprite(polygon.sides)
-    side_sprite.image = sub_image
-    side_sprite.rect = sub_image.get_rect()
-    side_sprite.mask = pygame.mask.from_surface(sub_image)
-    return side_sprite
-    
-
 def rotate_about_center(surface: pygame.Surface, image, angle):
     new_rect = pygame.transform.rotate(image, angle).get_rect()
     # new_rect.center = 
