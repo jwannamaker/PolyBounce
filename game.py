@@ -23,7 +23,6 @@ class PolyBounce:
         
         # Entities setup
         self.space = pymunk.space.Space()
-        # pymunk.pygame_util.positive_y_is_up = True
         self.space.gravity = (0, 100)
         
         screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]

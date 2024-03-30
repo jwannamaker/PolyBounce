@@ -87,7 +87,6 @@ def attach_segments(vertices, body: pymunk.Body, space: pymunk.Space):
 
 def get_shuffled_colors(N):
     ''' Shuffles the colors and returns N of them without repeats. '''
-    global PALLETE
     random.shuffle(PALLETE)
     return random.sample(PALLETE, N)
     
