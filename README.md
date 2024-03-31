@@ -13,3 +13,5 @@ Every time you touch a side, your color changes to match.
 <img width="1392" alt="image" src="https://github.com/jwannamaker/PolyBounce/assets/78064684/af7f9192-562c-40e5-ba86-7ae5acdf3a17">
 
 <img width="1291" alt="image" src="https://github.com/jwannamaker/PolyBounce/assets/78064684/ffda273c-afcb-4999-b8c2-bc18d80381a7">
+
+<img width="1290" alt="image" src="https://github.com/jwannamaker/PolyBounce/assets/78064684/0251ea18-d630-424f-a3e2-b3bc05ae1b58">
