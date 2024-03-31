@@ -41,9 +41,6 @@ def load_image(name):
     image.set_colorkey((0, 0, 0))
     return image
 
-def from_pygame(vec: Vector2):
-    return float(vec.x), float(vec.y)
-
 def get_color(color_str):
     return pygame.Color(PALLETE_DICT[color_str].value)
 
@@ -103,10 +100,10 @@ def begin(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
     data['side'] = 'side obj placeholder'
 
 def pre_solve(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
-    print('Collision success')
+    print('pre_solve')
 
 def post_solve(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
-    print('Collision stuff')
+    print('post_solve')
     
 def separate(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
-    print('Separation success')
+    print('separate')

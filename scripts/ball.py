@@ -15,7 +15,7 @@ class Ball(PhysicsEntity):
         # pymunk setup
         self.body = pymunk.Body(0, 0, pymunk.Body.DYNAMIC)
         self.shape = pymunk.Circle(self.body, self.radius)
-        self.body.moment = pymunk.moment_for_circle(10, 0, self.radius)
+        self.body.moment = pymunk.moment_for_circle(10 * self.radius, 0, self.radius)
         super().set_physics_properties()
         
     def render(self):

@@ -21,21 +21,22 @@ class Polygon(PhysicsEntity):
         self.wall_thickness = 50
         self.theta = (2 * np.pi) / self.N         # Exterior angle in radians
         self.inner_radius = self.radius - self.wall_thickness
-        self.vertices = self.get_vertices(self.radius, self.radius)
-        self.inner_vertices = self.get_vertices(self.inner_radius, self.radius)
+        self.vertices = self.get_vertices(self.radius)
+        self.inner_vertices = self.get_vertices(self.inner_radius)
         
         self.side_sprites = pygame.sprite.Group()
         self.side_shapes = []
         self.get_sides()
         
-        self.body.moment = pymunk.moment_for_circle(100, self.inner_radius, self.radius)
         super().set_visual_properties()
         super().set_physics_properties()
+        # self.body.moment = pymunk.moment_for_circle(100, self.inner_radius, self.radius)
+        self.body.body_type = pymunk.Body.KINEMATIC
         
         self.start_angle = self.body.angle
         self.rotating = False       # rotation process complete or not per one keypress
         
-    def get_vertices(self, radius, tilt=-np.pi/2):
+    def get_vertices(self, radius, tilt=0):
         ''' 
             Offset represents the offset of the center of the regular polygon 
             vertices generated from this method.
@@ -44,7 +45,7 @@ class Polygon(PhysicsEntity):
         for i in range(1, self.N + 1):
             x = (radius * np.cos(tilt + self.theta * i))
             y = (radius * np.sin(tilt + self.theta * i))
-            vertices.append(pymunk.Vec2d(x, y))
+            vertices.append((x, y))
         return vertices
     
     def get_subsurface(self):
@@ -59,12 +60,13 @@ class Polygon(PhysicsEntity):
         colors = get_shuffled_colors(self.N)
         for i, color in enumerate(colors):
             j = i + 1 if i < self.N - 1 else 0
-            inner = (self.inner_vertices[i].x, self.inner_vertices[i].y), (self.inner_vertices[j].x, self.inner_vertices[j].y)
-            outer = (self.vertices[i].x, self.vertices[i].y), (self.vertices[j].x, self.vertices[j].y)
+            inner = [self.inner_vertices[i], self.inner_vertices[j]]
+            outer = [self.vertices[i], self.vertices[j]]
             points = [inner[0], outer[0], outer[1], inner[1]]
             
             new_shape = self.create_side_shape(color, points)
             new_sprite = self.create_side_sprite(color, points)
+            
             self.side_sprites.add(new_sprite)
             self.side_shapes.append(new_shape)
 
@@ -74,7 +76,6 @@ class Polygon(PhysicsEntity):
         side_shape = pymunk.Poly(self.body, points, radius=1)
         side_shape.collision_type = get_collision_type(color)
         
-        points = side_shape.get_vertices()
         return side_shape
     
     def create_side_sprite(self, color, points):
