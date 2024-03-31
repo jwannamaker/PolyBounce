@@ -32,19 +32,21 @@ class Polygon(PhysicsEntity):
         super().set_physics_properties()
         # self.body.moment = pymunk.moment_for_circle(100, self.inner_radius, self.radius)
         self.body.body_type = pymunk.Body.KINEMATIC
-        
         self.start_angle = self.body.angle
         self.rotating = False       # rotation process complete or not per one keypress
         
-    def get_vertices(self, radius, tilt=0):
+    def get_vertices(self, radius):
         ''' 
             Offset represents the offset of the center of the regular polygon 
             vertices generated from this method.
         '''
+        offset_x = self.radius
+        offset_y = self.radius
+        tilt = (np.pi - self.theta) / 2
         vertices = []
         for i in range(1, self.N + 1):
-            x = (radius * np.cos(tilt + self.theta * i))
-            y = (radius * np.sin(tilt + self.theta * i))
+            x = (radius * np.cos(tilt + self.theta * i)) + offset_x
+            y = (radius * np.sin(tilt + self.theta * i)) + offset_y
             vertices.append((x, y))
         return vertices
     

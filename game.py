@@ -27,9 +27,9 @@ class PolyBounce:
         
         screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
         create_walls(screen_corners, self.space)
-        self.inner_ring = Polygon(self, radius=250, N=6)
-        self.mid_ring = Polygon(self, radius=300, N=6)
-        self.outer_ring = Polygon(self, radius=350, N=6)
+        self.inner_ring = Polygon(self, radius=250, N=5)
+        self.mid_ring = Polygon(self, radius=300, N=5)
+        self.outer_ring = Polygon(self, radius=350, N=5)
         self.ring_group = pygame.sprite.Group(self.inner_ring, self.mid_ring, self.outer_ring)
         
         self.player_ball = Ball(self, radius=25)
