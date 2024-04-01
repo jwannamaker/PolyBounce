@@ -47,6 +47,12 @@ def get_color(color_str):
 def get_collision_type(color_str):
     return PALLETE_DICT[color_str].collision_type
 
+def to_pygame(point_list):
+    result = []
+    for p in point_list:
+        result.append((p[0], -p[1]))
+    return result
+
 def create_walls(corners, space: pymunk.Space):
     for i in range(len(corners)):
         j = (i + 1) % len(corners)

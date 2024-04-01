@@ -17,23 +17,23 @@ class PolyBounce:
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.background.fill(pygame.Color('black'))
         self.clock = pygame.time.Clock()
-        self.fps = 50
-        self.dt = 1 / self.fps       
+        self.fps = 40
+        self.dt = 1 / self.fps
         self.running = False
         
         # Entities setup
         self.space = pymunk.space.Space()
-        self.space.gravity = (0, 100)
+        self.space.gravity = (0, 1500)
         
         screen_corners = [(0, 0), (0, SCREEN_SIZE.y), (SCREEN_SIZE.x, SCREEN_SIZE.y), (SCREEN_SIZE.x, 0)]
         create_walls(screen_corners, self.space)
-        self.inner_ring = Polygon(self, radius=250, N=5)
-        self.mid_ring = Polygon(self, radius=300, N=5)
-        self.outer_ring = Polygon(self, radius=350, N=5)
-        self.ring_group = pygame.sprite.Group(self.inner_ring, self.mid_ring, self.outer_ring)
+        self.ring_group = pygame.sprite.Group()
+        self.inner_ring = Polygon(self, self.ring_group, radius=220, N=5)
+        self.mid_ring = Polygon(self, self.ring_group, radius=300, N=5)
+        self.outer_ring = Polygon(self, self.ring_group, radius=380, N=5)
         
-        self.player_ball = Ball(self, radius=25)
-        self.player_group = pygame.sprite.Group(self.player_ball)
+        self.player_group = pygame.sprite.Group()
+        self.player_ball = Ball(self, self.player_group, radius=25)
         
         # Now that all the game objects are created, I can add collision handling for them
         self.handler = self.space.add_collision_handler(1, 2) # 1 - ball, 2 - nonball ---> Can easily transition into using bitmasking for this

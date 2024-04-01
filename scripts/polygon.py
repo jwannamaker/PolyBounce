@@ -6,17 +6,14 @@ import numpy as np
 from scripts.utils import *
 from scripts.entity import PhysicsEntity
 
-class Side(NamedTuple):
-    sprite: pygame.sprite.Sprite
-    shape: pymunk.Shape
 
 class Polygon(PhysicsEntity):
     '''
     Polygon ring rotates using  Q/A (counterclockwise) and E/D (clockwise).
     **Holds a group of sprites for the sides
     '''
-    def __init__(self, game, radius, N, entity_type='non-player'):
-        super().__init__(game, radius, entity_type)
+    def __init__(self, game, groups, radius, N, entity_type='non-player'):
+        super().__init__(game, groups, radius, entity_type)
         self.N = N          
         self.wall_thickness = 50
         self.theta = (2 * np.pi) / self.N         # Exterior angle in radians
@@ -89,7 +86,7 @@ class Polygon(PhysicsEntity):
         side.mask = pygame.mask.from_surface(side.image)
         return side
         
-    def remove_side(self, side: Side):
+    def remove_side(self, color):
         pass
     
     def cw_rotate(self, dt):
@@ -104,3 +101,8 @@ class Polygon(PhysicsEntity):
         for side in self.side_sprites:
             self.game.screen.blit(side.image, self.rect.topleft)
         self.game.screen.blit(self.image, self.rect.topleft)
+
+
+# class Side(PhysicsEntity):
+#     def __init__(self, polygon: Polygon, start_angle, end_angle, color, entity_type='non-player'):
+#         super().__init__(polygon.game, polygon.groups, polygon.radius, start_angle, end_angle, )

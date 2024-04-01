@@ -6,8 +6,8 @@ from scripts.utils import *
 from scripts.entity import PhysicsEntity
 
 class Ball(PhysicsEntity):
-    def __init__(self, game, radius, entity_type='player'):
-        super().__init__(game, radius, entity_type)
+    def __init__(self, game, groups, radius, entity_type='player'):
+        super().__init__(game, groups, radius, entity_type)
         
         super().set_visual_properties()
         self.render()
