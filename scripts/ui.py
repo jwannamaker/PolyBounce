@@ -44,27 +44,13 @@ class UI:
             new_sprite.image = entity.create_image()
             new_sprite.rect = entity.create_rect()
         
-    def update_all(self):
-        pass
-
-
-class PolyBounceUI(UI):
-    def __init__(self):
-        self.IMG_DIR = 'data/images/'
-        self.FONT_DIR = 'data/fonts/'
-
-        self.SCREEN_SIZE = Vector2(1280, 720)
-        self.CENTER = Vector2(self.SCREEN_SIZE // 2)
+    def draw(self, surface):
         
-        self.PALLETE = {
-            'blue': (150, 170, 200),
-            'cyan': (144, 239, 240),
-            'drk-purple': (63, 45, 112),
-            'lt-blue': (170, 224, 241),
-            'lt-purple': (150, 100, 187),
-            'magenta': (129, 55, 113),
-            'mid-blue': (83, 91, 113),
-            'pink': (201, 93, 177), 
-            'red': (255, 100, 100),
-            'white': (250, 250, 250)
-        }
+        
+    def update_all(self):
+        for box in self.entities['still']:
+            box.update()
+        
+
+
+

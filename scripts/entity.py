@@ -1,19 +1,15 @@
-import random
-
 import pygame
 from pygame import Vector2
-import pymunk
 
-from game import Game
+from ui import UI
     
 class Entity(pygame.sprite.Sprite):
     """ Entity should have the option to be rendered through Pygame, but 
     shouldn't have to 'render' through Pymunk.
     """
-    def __init__(self, game, groups, entity_type, color):
+    def __init__(self, ui: UI, groups, entity_type, color):
         self.groups = groups
         super().__init__(self.groups)
-        self.game = game
         self.entity_type = entity_type
         self.color = color
         self.init_sprite()
