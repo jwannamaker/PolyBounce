@@ -1,42 +1,61 @@
-'''
-polygon.py contains the definition for the Polygon class and the Side class.
-'''
+""" polygon.py contains the definition for the Polygon class and the Side class.
+"""
 
 import numpy as np
-from scripts.utils import *
-from scripts.entity import PhysicsEntity
+from collections import deque
+
+import pygame
+from pygame import gfxdraw
+import pymunk
+
+from ui import UI
+from entity import Entity
+from enemy import Enemy
+from ui import PolyBounceUI
 
 
-class Polygon(PhysicsEntity):
-    '''
-    Polygon ring rotates using  Q/A (counterclockwise) and E/D (clockwise).
-    **Holds a group of sprites for the sides
-    '''
-    def __init__(self, game, groups, radius, N, entity_type='non-player'):
-        super().__init__(game, groups, radius, entity_type)
-        self.N = N          
-        self.wall_thickness = 50
-        self.theta = (2 * np.pi) / self.N         # Exterior angle in radians
-        self.inner_radius = self.radius - self.wall_thickness
-        self.vertices = self.get_vertices(self.radius)
-        self.inner_vertices = self.get_vertices(self.inner_radius)
+class Side(Enemy):
+    """ This is a single side of a Polygon. Only holds the absolute minimum
+    needed to create a Pymunk representation, and a Pygame representation. The
+    Game will determine the rest.
+    """
+    def __init__(self, entity: Entity, radius, start_angle, end_angle, wall_thickness=50):      
+        self.start_angle = start_angle
+        self.end_angle = end_angle
+        self.wall_thickness = wall_thickness
         
-        self.side_sprites = pygame.sprite.Group()
-        self.side_shapes = []
-        self.get_sides()
+        self.outer_radius = radius
+        self.inner_radius = self.outer_radius - self.wall_thickness
+        self.vertices = self.get_vertices()
         
-        super().set_visual_properties()
-        super().set_physics_properties()
-        # self.body.moment = pymunk.moment_for_circle(100, self.inner_radius, self.radius)
+    def get_vertices(self):
+        """ Uses polar coordinates to get the inner and outer vertices ordered
+        into a convex hull (aka inner outer Outer Inner)
+        """
+        
+        pass
+        
+
+class Polygon:
+    """ Doesn't need to know which position it is (inner, mid, outer). The 
+    concrete instance of Game (aka PolyBounce) via its Level attribute can
+    determine that. I want to avoid having to update an internal state if I
+    can.
+    
+    Polygon is a collection of Sides.
+    """
+    def __init__(self, N):
+        self.N = N
+        self.theta = (np.pi * 2) / self.N
+        
         self.body.body_type = pymunk.Body.KINEMATIC
         self.start_angle = self.body.angle
-        self.rotating = False       # rotation process complete or not per one keypress
+        self.rotating = False 
         
     def get_vertices(self, radius):
-        ''' 
-            Offset represents the offset of the center of the regular polygon 
-            vertices generated from this method.
-        '''
+        """ Offset is the distance for x, y to the center of the regular polygon 
+        vertices generated from this method.
+        """
         offset_x = self.radius
         offset_y = self.radius
         tilt = (np.pi - self.theta) / 2
@@ -48,7 +67,7 @@ class Polygon(PhysicsEntity):
         return vertices
     
     def get_subsurface(self):
-        ''' New surface inherits palette, colorkey, and alpha settings. '''
+        """ New surface inherits palette, colorkey, and alpha settings. """
         return self.image.subsurface((0, 0, self.radius * 2, self.radius * 2))
     
     def get_color_at(self, x, y):
@@ -56,7 +75,7 @@ class Polygon(PhysicsEntity):
         return self.image.get_at(local_coord)
     
     def get_sides(self):
-        colors = get_shuffled_colors(self.N)
+        colors = UI.get_shuffled_colors(self.N)
         for i, color in enumerate(colors):
             j = i + 1 if i < self.N - 1 else 0
             inner = [self.inner_vertices[i], self.inner_vertices[j]]
@@ -68,20 +87,12 @@ class Polygon(PhysicsEntity):
             
             self.side_sprites.add(new_sprite)
             self.side_shapes.append(new_shape)
-
-    
-    def create_side_shape(self, color, points):
-        ''' Creates a shape (pymunk.Poly), adding it the body of the polygon and returns it. '''
-        side_shape = pymunk.Poly(self.body, points, radius=1)
-        side_shape.collision_type = get_collision_type(color)
-        
-        return side_shape
     
     def create_side_sprite(self, color, points):
-        ''' Uses the points to create an image and a rect and returns it. '''
+        """ Uses the points to create an image and a rect and returns it. """
         side = pygame.sprite.Sprite()
         side.image = self.get_subsurface()
-        gfxdraw.filled_polygon(side.image, points, get_color(color))
+        gfxdraw.filled_polygon(side.image, points, PolyBounceUI.get_color(color))
         side.rect = side.image.get_rect()
         side.mask = pygame.mask.from_surface(side.image)
         return side
@@ -101,7 +112,6 @@ class Polygon(PhysicsEntity):
         for side in self.side_sprites:
             self.game.screen.blit(side.image, self.rect.topleft)
         self.game.screen.blit(self.image, self.rect.topleft)
-
 
 # class Side(PhysicsEntity):
 #     def __init__(self, polygon: Polygon, start_angle, end_angle, color, entity_type='non-player'):
