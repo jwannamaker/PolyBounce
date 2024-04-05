@@ -9,9 +9,8 @@ from pygame import gfxdraw
 import pymunk
 
 from ui import UI
-from entity import Entity
-from enemy import Enemy
-from ui import PolyBounceUI
+from entity import Enemy, Entity
+from physics import PhysicsEngine
 
 
 class Side(Enemy):
@@ -30,21 +29,22 @@ class Side(Enemy):
         
     def get_vertices(self):
         """ Uses polar coordinates to get the inner and outer vertices ordered
-        into a convex hull (aka inner outer Outer Inner)
+        into a convex hull (aka inner outer Outer Inner). The vertices are 
         """
+        center = (self.outer_radius, self.outer_radius)
         
-        pass
+        inner_start = pygame.math.Vector2(center) + pygame.math.Vector2().from_polar((self.inner_radius, -self.start_angle))
+        inner_end = pygame.math.Vector2(center) + pygame.math.Vector2().from_polar((self.inner_radius, -self.end_angle))
+        outer_start = pygame.math.Vector2(center) + pygame.math.Vector2().from_polar((self.outer_radius, -self.start_angle))
+        outer_end = pygame.math.Vector2(center) + pygame.math.Vector2().from_polar((self.outer_radius, -self.end_angle))
+        
+        vertices = [inner_start, outer_start, outer_end, inner_end]
+        return vertices
         
 
 class Polygon:
-    """ Doesn't need to know which position it is (inner, mid, outer). The 
-    concrete instance of Game (aka PolyBounce) via its Level attribute can
-    determine that. I want to avoid having to update an internal state if I
-    can.
-    
-    Polygon is a collection of Sides.
-    """
-    def __init__(self, N):
+    """ Polygon is Factory of Sides. """
+    def __init__(self, N, physics_engine: PhysicsEngine):
         self.N = N
         self.theta = (np.pi * 2) / self.N
         
@@ -112,7 +112,3 @@ class Polygon:
         for side in self.side_sprites:
             self.game.screen.blit(side.image, self.rect.topleft)
         self.game.screen.blit(self.image, self.rect.topleft)
-
-# class Side(PhysicsEntity):
-#     def __init__(self, polygon: Polygon, start_angle, end_angle, color, entity_type='non-player'):
-#         super().__init__(polygon.game, polygon.groups, polygon.radius, start_angle, end_angle, )

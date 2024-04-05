@@ -1,8 +1,7 @@
 import pygame
 
 from scripts.ui import UI
-from scripts.player import Player
-from scripts.enemy import Enemy
+from scripts.entity import Player, Enemy
 
 class Game:
     def __init__(self, title, ui: UI, player: Player, enemy: Enemy):
@@ -55,6 +54,18 @@ class Game:
         """
         self.ui.update_all()
         self.entities.update()
+    
+    def render(self):
+        self.screen.blit(self.background, (0, 0))
+        self.display_stats()
+        for entity in self.entities:
+            entity.draw(self.ui.screen)
+        
+        # TODO: Add some logic to address the need for semi-fixed framerate?
+        self.clock.tick(self.fps)
+        self.space.step(self.dt)
+        pygame.display.flip()
+    
     
     def main_loop(self):
         while self.running:

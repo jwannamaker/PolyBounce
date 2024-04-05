@@ -1,71 +1,64 @@
 import pymunk
 from pymunk import pygame_util
 
-from entity import Entity
-from player import Player
-from enemy import Enemy
+from entity import Observable
 from ui import UI
 
-class PhysicsEngine:
+class PhysicsEngine(Observable):
     """ Handles creation and updating of all game objects that need to be 
     physically simulated. Provides easy access to the Pymunk processes for my 
     purposes, without making other classes or functions overly complex. 
     """
-    def __init__(self, ui_type):
-        self.ui_type = ui_type
-        self.space = pymunk.Space()
-        self.space.gravity = (0, 1500)
-        
+    space = pymunk.Space()
+    space.gravity = (0, 1200)
+    observers = []
+    
+    def __init__(self, ui: UI):
+        self.ui = ui
         screen_corners = [(0, 0), 
-                          (0, ui_type.SCREEN_SIZE.y), 
-                          (ui_type.SCREEN_SIZE.x, ui_type.SCREEN_SIZE.y), 
-                          (ui_type.SCREEN_SIZE.x, 0)]
+                          (0, self.ui.SCREEN_SIZE.y), 
+                          (self.ui.SCREEN_SIZE.x, self.ui.SCREEN_SIZE.y), 
+                          (self.ui.SCREEN_SIZE.x, 0)]
         self.create_walls(screen_corners)
         
-        # Now that all the game objects are created, I can add collision handling for them
-        self.handler = self.space.add_collision_handler(1, 2) # 1 - ball, 2 - nonball ---> Can easily transition into using bitmasking for this
-        self.handler.data['ball'] = self.player_ball
-        self.handler.data['inner_ring'] = self.inner_ring
+        """ TODO: Create more collision handlers, and apply 
+        Groups/ShapeFilters for each Polygon. Bitmasks for each color. 
+        """
+        self.handler = self.space.add_collision_handler(1, 2)
         self.handler.begin = PhysicsEngine.begin
         self.handler.pre_solve = PhysicsEngine.pre_solve
         self.handler.post_solve = PhysicsEngine.post_solve
         self.handler.separate = PhysicsEngine.separate
-        self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
            
     def get_collision_type(self, color_str, entity_type):
-        """ Generates a bitmask given the entity type and the color.
-        """
-        return self.ui_type.PALLETE[color_str]
+        """ Generates a bitmask given the entity type and the color. """
+        return self.ui.PALETTE[color_str]
 
-    def add_to_space(self, body, shape):
+    def add_to_space(self, body: pymunk.Body, shape: pymunk.Shape):
         """ Every body starts in the center of the screen. """
-        body.position = [float(self.ui_type.CENTER.x), float(self.ui_type.CENTER.y)]
-
+        body.position = [float(self.ui.CENTER.x), float(self.ui.CENTER.y)]
+        
         shape.elasticity = 0.999
         shape.friction = 0.67
-        self.space.add(body, shape)
-            
+        
+        PhysicsEngine.space.add(body, shape)
     
     def create_walls(self, corners):
         """ The body is already added to the space, since we access the given
         static_body.
         
-        We give the radius of 3 and set the neighbors to get the generated
+        We give the radius of 1 and set the neighbors to get the generated
         Segments to play nicely with each other and not get the other Shapes/
         Bodies caught on weird geometries.
         """
         for i in range(len(corners)):
             j = (i + 1) % len(corners)
-            segment = pymunk.Segment(self.space.static_body, corners[i], corners[j], 3)
+            segment = pymunk.Segment(PhysicsEngine.space.static_body, corners[i], corners[j], 1)
             segment.set_neighbors(corners[i], corners[j]) 
             segment.density = 100
             segment.elasticity = 0.999
             segment.friction = 0.49
-            self.space.add(segment) 
-            # I know, I'm not calling self.add_to_space() 
-            # I wish I was 
-            # but it's gonna work out nice and easy like that. 
-            # Shhhhh, it's okay. Don't worry about this little thing.
+            PhysicsEngine.space.add(segment)
                    
     def attach_segments(self, vertices, body):
         """ Returns the line segments connecting all the passed vertices
@@ -74,7 +67,7 @@ class PhysicsEngine:
         for pymunk.
         """
         segment_list = []
-        self.space.add(body)
+        PhysicsEngine.space.add(body)
         for i in range(len(vertices)):
             j = i + 1 if i < len(vertices) - 1 else 0
             point_a = vertices[i][0], vertices[i][1]
@@ -86,9 +79,9 @@ class PhysicsEngine:
             segment.density = 100
             segment.elasticity = 1
             segment.friction = 0.7
-            segment.collision_type = 2  # NOT ball type
+            segment.collision_type = 2  # TODO: more specific collision filters
             segment_list.append(segment)
-        self.space.add(*segment_list)
+        PhysicsEngine.space.add(*segment_list)
     
     def create_circle(self, radius):
         mass = pymunk.area_for_circle(inner_radius=0, outer_radius=radius) * 2
@@ -111,14 +104,25 @@ class PhysicsEngine:
         self.add_to_space(side_body, side_shape)
     
     @staticmethod
-    def begin(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
-        print('Collision began this step')
-        print('Must get from pygame mask collision now what the s are')
-        print('Then populate the data dict with that collision information')
-        collision_ = data['inner_ring'].get_at(arbiter.contact_point_set)
-        data['ball'] = 'ball obj placeholder'
-        data['side'] = 'side obj placeholder'
+    def add_observer(self, observer):
+        if observer not in self.observers:
+            self.observers.append(observer)
 
+    @staticmethod
+    def remove_observer(self, observer):
+        if observer in self.observers:
+            self.observers.remove(observer)
+
+    @staticmethod
+    def notify_observers(self, event_type, data):
+        for observer in self.observers:
+            observer.update(event_type, data)
+
+    @staticmethod
+    def begin(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
+        print('begin')
+        PhysicsEngine.notify_observers('collision_begin', {'arbiter': arbiter})
+        
     @staticmethod
     def pre_solve(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
         print('pre_solve')
@@ -129,4 +133,10 @@ class PhysicsEngine:
     
     @staticmethod
     def separate(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
+        """ Remove the side hit from the space if data indicates the correct
+        conditions were met.
+        """
         print('separate')
+        side_shape = arbiter.shapes[0]
+        PhysicsEngine.space.remove(side_shape)
+    
