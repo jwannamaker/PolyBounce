@@ -11,40 +11,29 @@ class PhysicsEngine:
     space.gravity = (0, 1200)
     observers = []
     
-    def __init__(self, SCREEN_SIZE):
-        screen_corners = Asset.BOX(SCREEN_SIZE.x, SCREEN_SIZE.y).get_corners()
-        self.create_walls(screen_corners)
-        
-        """ TODO: Create more collision handlers, and apply 
-        Groups/ShapeFilters for each Polygon. Bitmasks for each color. 
-        """
+    def __init__(self):
+        """ Creates the collision handlers. """
         self.handler = self.space.add_collision_handler(1, 2)
         self.handler.begin = PhysicsEngine.begin
         self.handler.pre_solve = PhysicsEngine.pre_solve
         self.handler.post_solve = PhysicsEngine.post_solve
         self.handler.separate = PhysicsEngine.separate
-           
+    
     def get_collision_type(self, color_str, entity_type):
         """ TODO: Generates a bitmask given the entity type and the color. """
         return self.ui.PALETTE[color_str]
 
-    def add_to_space(self, body: pymunk.Body, shape: pymunk.Shape):
-        """ Every body starts in the center of the screen. """
-        body.position = [float(self.ui.CENTER.x), float(self.ui.CENTER.y)]
-        
+    def add_to_space(position: tuple[float, float], body: pymunk.Body, shape: pymunk.Shape):
+        body.position = list(position)
         shape.elasticity = 0.999
         shape.friction = 0.67
-        
         PhysicsEngine.space.add(body, shape)
     
-    def create_walls(self, corners):
+    def create_walls(screen_size: tuple[int, int]):
         """ The body is already added to the space, since we access the given
         static_body.
-        
-        We give the radius of 1 and set the neighbors to get the generated
-        Segments to play nicely with each other and not get the other Shapes/
-        Bodies caught on weird geometries.
         """
+        corners = Asset.BOX(screen_size[0], screen_size[1]).get_corners()
         for i in range(len(corners)):
             j = (i + 1) % len(corners)
             segment = pymunk.Segment(PhysicsEngine.space.static_body, corners[i], corners[j], 1)
@@ -54,7 +43,7 @@ class PhysicsEngine:
             segment.friction = 0.49
             PhysicsEngine.space.add(segment)
                    
-    def attach_segments(self, vertices, body):
+    def attach_segments(vertices: list[tuple[float, float]], body: pymunk.Body):
         """ Returns the line segments connecting all the passed vertices
         together, adding to the specified body and making all segments 
         neighbors. Effectively creates a non-filled polygon from line segments 
@@ -77,15 +66,15 @@ class PhysicsEngine:
             segment_list.append(segment)
         PhysicsEngine.space.add(*segment_list)
     
-    def create_circle(self, radius):
+    def create_circle(radius: float):
         mass = pymunk.area_for_circle(inner_radius=0, outer_radius=radius) * 2
         moment = pymunk.moment_for_circle(mass, inner_radius=0, outer_radius=radius)
         circle_body = pymunk.Body(mass, moment)
         circle_shape = pymunk.Circle(circle_body, radius)
-        self.add_to_space(circle_body, circle_shape)
+        PhysicsEngine.add_to_space(circle_body, circle_shape)
         return circle_shape._id
      
-    def create_side(self, points):
+    def create_side(points: list[tuple[float, float]]) -> pymunk.Body.id:
         """ The mass and moment here are really just symbolic, since they don't 
         get used for a KINEMATIC body_type. I wanted them here for strictly
         reference and completion.
@@ -97,7 +86,7 @@ class PhysicsEngine:
                                  vertices=points, 
                                  transform=pymunk.Transform.translated(), 
                                  radius=1)
-        self.add_to_space(side_body, side_shape)
+        PhysicsEngine.add_to_space(side_body, side_shape)
         return side_shape._id
     
     @staticmethod

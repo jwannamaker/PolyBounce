@@ -38,7 +38,7 @@ class Asset(pygame.sprite.Sprite):
                  base_image: Optional[Surface] = None):
         self.shape = shape
         self.color = color
-        self.base_image = base_image
+        self.base_image = base_image # Really, only Polygon Sides should be using a base_image
         
         if isinstance(self.shape, Asset.CIRCLE):
             self.create_circle_image()
