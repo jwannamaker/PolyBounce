@@ -1,116 +1,144 @@
+import copy
+from typing import NamedTuple, Optional
 from abc import ABC, abstractmethod
 
 import pygame
-from pygame import Vector2, Rect, mask, Surface
+from pygame import Rect, mask, Surface, Color
 
 class Asset(pygame.sprite.Sprite):
-    def __init__(self, groups, shape: str, color_key: str):
-        super().__init__(groups)
-        self.color_key = color_key
-        self.init_sprite()
+    """ An Asset handles ONLY the visual aspect of a game object. """
+    class CIRCLE(NamedTuple):
+        radius: float
         
-    def create_circle_image(self, radius, color):
-        pass
+        def get_center(self) -> tuple[float, float]:
+            return (self.radius, self.radius)
+    
+    class POLY(NamedTuple):
+        width: float
+        height: float
+        vertices: list[tuple[float, float]]
+    
+    class BOX(NamedTuple):
+        width: float
+        height: float
         
-    def create_poly_image(self):
-        pass    
+        def get_corners(self) -> list[tuple[float, float]]:
+            return [(0, 0), 
+                    (0, self.height), 
+                    (self.width, self.height),
+                    (self.width, 0)]
     
-    def set_image(self, picture):
-        self.image = Surface((self.radius * 2, self.radius * 2))
+    def __init__(self, other):
+        if isinstance(other, Asset):
+            self = copy.deepcopy(other)
     
-    def init_sprite(self):
-        self.draw(self.image)
-        self.image.set_colorkey(self.ui.PALETTE['black'])
-        self.rect.topleft = (self.ui.CENTER.x - self.radius, 
-                             self.ui.CENTER.y - self.radius)
-    
-    def create_mask(self):
+    def __init__(self, 
+                 shape: CIRCLE | POLY | BOX, 
+                 color: Color,
+                 base_image: Optional[Surface] = None):
+        self.shape = shape
+        self.color = color
+        self.base_image = base_image
+        
+        if isinstance(self.shape, Asset.CIRCLE):
+            self.create_circle_image()
+        elif isinstance(self.shape, Asset.POLY):
+            self.create_poly_image()
+        elif isinstance(self.shape, Asset.BOX):
+            self.create_box_image()
+            
         self.rect = Rect(self.image.get_rect())
         self.mask = mask.from_surface(self.image)
+    
+    def create_circle_image(self):
+        if self.base_image == None:
+            self.base_image = Surface((self.shape.radius*2, self.shape.radius*2))
+        self.image = pygame.draw.circle(self.base_image, 
+                                        self.color, 
+                                        self.shape.get_center(), 
+                                        self.shape.radius)
+    
+    def create_poly_image(self):
+        if self.base_image == None:
+            self.base_image = Surface((self.shape.width, self.shape.height))
+        self.image = pygame.draw.polygon(self.base_image,
+                                         self.color,
+                                         self.shape.vertices,
+                                         width=0)
+    
+    def create_box_image(self):
+        if self.base_image == None:
+            self.base_image = Surface((self.shape.width, self.shape.height))
+        self.image = pygame.draw.rect(self.base_image,
+                                      self.color,
+                                      ((0, 0), (self.shape.width, self.shape.height)),
+                                      border_radius=5)
 
-class Movable(ABC):
-    def __init__(self, position):
-        self.position = position
+    @abstractmethod
+    def draw(self):
+        pass
+    
+    @abstractmethod
+    def update(self):
+        pass
+    
+class Movable(Asset, ABC):
+    def __init__(self, asset: Asset, start_position: list[float, float]):
+        super().__init__(asset)
+        self.position = start_position
     
     @abstractmethod
     def draw(self, screen):
+        # TODO: Use Pygame and draw the asset at the correct position.
         pass    
     
     @abstractmethod
     def update(self):
-        """ The position is changing every time, this method needs to do 
-        something everytime it gets called.
+        """ The position of this object is expected to change every frame. This
+        method needs to do something every time it gets called.
         """
-        pass
-        
-class Fixed(ABC):
-    @abstractmethod
-    def check_change(self):
-        pass
+        self.position = self.rect.topleft
+        # TODO: Any other logic an Entity needs to take care of during update.
+
+class FixedPosition(Asset, ABC):
+    def __init__(self, asset: Asset, screen_position: list[float, float]):
+        super().__init__(asset)
+        self.screen_position = screen_position
     
     @abstractmethod
-    def draw(self):
+    def draw(self, screen):
+        """ This method will ONLY change the data (text) displayed on this 
+        Entity. It will be drawn in the same position every time.
+        """
         pass
     
     @abstractmethod
     def update(self):
-        """ This method needs to call check_change() if there are any changes before 
-        calling draw().
+        """ This method needs to call check_change() if there are any changes 
+        before calling draw().
         """
         pass
-    
-class Entity:
-    """ Entity is the Abstract class for every game object. """
-    def __init__(self, behavior: Fixed | Movable, asset_type: str):
-        self.behavior = behavior
-    
-    def update(self):
-        # TODO: call the abstract class's methods for behavior
-        pass
-    
-    def draw(self):
-        # TODO: the image should be taken care of elsewhere
-        pass
 
-                
-class Player(Movable, Entity):
+class EventHandler(NamedTuple):
+    asset: Asset
+    event_func: callable
+    
+    def run_event(self):
+        self.asset.event_func()
+    
+class EventManager(ABC):
     def __init__(self):
-        super().__init__()
+        self.observers: dict[str, set[EventHandler]] = {}
+    
+    def attach_observer(self, event_type: str, handler: EventHandler):
+        self.observers[event_type] = handler
+    
+    def detach_observer(self, event_type: str, handler: EventHandler):
+        # TODO: More error checking needed--specifically the case where a
+        if event_type in self.observers:
+            self.observers[event_type].remove(handler)
         
-    def calculate_score(self):
-        """ Calculate the score based on the current number of hits times the
-        level the hits happened on.
-        """
-        pass
-    
-    def current_level(self):
-        """ Return the current level this player is on in the game. """
-        pass
-    
-    def level_up(self):
-        """ Increase the mass or something. Making it easier to break through 
-        blocks.
-        """
-        pass
-
-class Enemy(Movable, Entity):
-    def __init__(self):
-        pass
-
-class Observed(ABC):
-    @abstractmethod
-    def add_observer(self, observer):
-        pass
-    
-    @abstractmethod
-    def remove_observer(self, observer):
-        pass
-    
-    @abstractmethod
-    def notify_observers(self):
-        pass
-
-class Observer(ABC):
-    @abstractmethod
-    def set_observed(self, observed):
-        pass
+    def notify_observers(self, event_type):
+        if event_type in self.observers:
+            for handler in self.observers[event_type].value():
+                handler.run_event()

@@ -1,10 +1,8 @@
 import pymunk
-from pymunk import pygame_util
 
-from entity import Observable
-from ui import UI
+from scripts.entity import Asset
 
-class PhysicsEngine(Observable):
+class PhysicsEngine:
     """ Handles creation and updating of all game objects that need to be 
     physically simulated. Provides easy access to the Pymunk processes for my 
     purposes, without making other classes or functions overly complex. 
@@ -13,12 +11,8 @@ class PhysicsEngine(Observable):
     space.gravity = (0, 1200)
     observers = []
     
-    def __init__(self, ui: UI):
-        self.ui = ui
-        screen_corners = [(0, 0), 
-                          (0, self.ui.SCREEN_SIZE.y), 
-                          (self.ui.SCREEN_SIZE.x, self.ui.SCREEN_SIZE.y), 
-                          (self.ui.SCREEN_SIZE.x, 0)]
+    def __init__(self, SCREEN_SIZE):
+        screen_corners = Asset.BOX(SCREEN_SIZE.x, SCREEN_SIZE.y).get_corners()
         self.create_walls(screen_corners)
         
         """ TODO: Create more collision handlers, and apply 
@@ -31,7 +25,7 @@ class PhysicsEngine(Observable):
         self.handler.separate = PhysicsEngine.separate
            
     def get_collision_type(self, color_str, entity_type):
-        """ Generates a bitmask given the entity type and the color. """
+        """ TODO: Generates a bitmask given the entity type and the color. """
         return self.ui.PALETTE[color_str]
 
     def add_to_space(self, body: pymunk.Body, shape: pymunk.Shape):
@@ -89,6 +83,7 @@ class PhysicsEngine(Observable):
         circle_body = pymunk.Body(mass, moment)
         circle_shape = pymunk.Circle(circle_body, radius)
         self.add_to_space(circle_body, circle_shape)
+        return circle_shape._id
      
     def create_side(self, points):
         """ The mass and moment here are really just symbolic, since they don't 
@@ -100,23 +95,27 @@ class PhysicsEngine(Observable):
         side_body = pymunk.Body(mass, moment, pymunk.Body.KINEMATIC)
         side_shape = pymunk.Poly(body=side_body, 
                                  vertices=points, 
-                                 transform=pymunk.Transform.translated(), radius=1)
+                                 transform=pymunk.Transform.translated(), 
+                                 radius=1)
         self.add_to_space(side_body, side_shape)
+        return side_shape._id
     
     @staticmethod
-    def add_observer(self, observer):
-        if observer not in self.observers:
-            self.observers.append(observer)
+    def add_observer(observer, shape):
+        if observer not in PhysicsEngine.observers:
+            PhysicsEngine.observers.append(observer)
 
     @staticmethod
-    def remove_observer(self, observer):
-        if observer in self.observers:
-            self.observers.remove(observer)
+    def remove_observer(observer):
+        if observer in PhysicsEngine.observers:
+            PhysicsEngine.observers.remove(observer)
 
     @staticmethod
-    def notify_observers(self, event_type, data):
-        for observer in self.observers:
+    def notify_observers(event_type, data):
+        for observer in PhysicsEngine.observers:
             observer.update(event_type, data)
+            # TODO: complete this method so that the position goes out to the
+            # subscribed shapes' Polygons.
 
     @staticmethod
     def begin(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
@@ -126,10 +125,12 @@ class PhysicsEngine(Observable):
     @staticmethod
     def pre_solve(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
         print('pre_solve')
+        PhysicsEngine.notify_observers('collision_pre_solve', {'arbiter': arbiter})
 
     @staticmethod
     def post_solve(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
         print('post_solve')
+        PhysicsEngine.notify_observers('collision_post_solve', {'arbiter': arbiter})
     
     @staticmethod
     def separate(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
@@ -137,6 +138,10 @@ class PhysicsEngine(Observable):
         conditions were met.
         """
         print('separate')
+        PhysicsEngine.notify_observers('collision_separate', {'arbiter': arbiter})
         side_shape = arbiter.shapes[0]
         PhysicsEngine.space.remove(side_shape)
-    
+        
+    @staticmethod
+    def step_by(dt: float):
+        PhysicsEngine.space.step(dt)
