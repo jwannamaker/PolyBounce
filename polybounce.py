@@ -5,7 +5,7 @@ import pygame
 from pygame import Vector2
 import pymunk
 
-from game import Game, Level
+from game_objects import Game, Level, UI
 from scripts.physics import PhysicsEngine
 
 class Polygon:
@@ -100,20 +100,7 @@ class Side:
         
         return [inner_start, outer_start, outer_end, inner_end]
 
-class PolyBounceUI:
-    PALLETE = {
-        'blue': (150, 170, 200),
-        'cyan': (144, 239, 240),
-        'drk-purple': (63, 45, 112),
-        'lt-blue': (170, 224, 241),
-        'lt-purple': (150, 100, 187),
-        'magenta': (129, 55, 113),
-        'mid-blue': (83, 91, 113),
-        'pink': (201, 93, 177), 
-        'red': (255, 100, 100),
-        'white': (250, 250, 250)
-    }
-    
+class PolyBounceUI(UI):
     def __init__(self):
         self.IMG_DIR = 'data/images/'
         self.FONT_DIR = 'data/fonts/'
@@ -121,7 +108,13 @@ class PolyBounceUI:
         self.SCREEN_SIZE = Vector2(1280, 720)
         self.CENTER = Vector2(self.SCREEN_SIZE // 2)
         
-        PALLETE = {
+        
+        super().__init__()
+
+class PolyBounce(Game):
+    def __init__(self):
+        super().__init__('PolyBounce')
+        self.PALLETE = {
             'blue': (150, 170, 200),
             'cyan': (144, 239, 240),
             'drk-purple': (63, 45, 112),
@@ -133,13 +126,10 @@ class PolyBounceUI:
             'red': (255, 100, 100),
             'white': (250, 250, 250)
         }
-        super().__init__()
-
-class PolyBounce(Game):
-    def __init__(self):
-        super().__init__('PolyBounce')
+        self.difficulty = {'Color Queue': {random.sample(self.PALLETE.keys(), 3)}, 
+                           'Rings': [random.sample(self.PALLETE.keys(), random.choice(3, 4)) for _ in range(3)]}
+        self.levels = [Level(self, 0, )]
         
-        # Entities setup
         
         # Now that all the game objects are created, I can add collision handling for them
    
