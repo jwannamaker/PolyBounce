@@ -106,7 +106,7 @@ class Player(Movable):
         """ Calculate the score base_imaged on the current number of hits times the
         level the hits happened on.
         """
-        pass
+        return self.level_score + Player.total_score
     
     def current_level(self):
         """ Return the current level this player is on in the game. """
@@ -294,9 +294,8 @@ class PolyBounce(Game):
         
         # self.level = Level(0)
     
-    def reint_player(self):
-        
-        pass
+    def reset_player(self):
+        self.player.level_score = 0
     
     def handle_user_input(self):
         for event in pygame.event.get():

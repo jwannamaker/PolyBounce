@@ -1,6 +1,39 @@
+import ABC
+from collections import NamedTuple
+
 import pymunk
 
 from scripts.entity import Asset
+
+class EventHandler(NamedTuple):
+    """ EventHandler bundles together the Asset (the observer to event changes) 
+    with the function that will be called when the event occurs.
+    """
+    asset: Asset
+    event_func: callable
+    
+    def run_event(self):
+        self.asset.event_func()
+    
+class EventManager(ABC):
+    """ EventManager allows the use of a subscription model for changes. It uses
+    EventHandlers that get triggered when a certain 'event_type' is passed to 
+    (method) notify_observers 
+    """
+    def __init__(self):
+        self.observers: dict[str, set[EventHandler]] = {}
+    
+    def attach_observer(self, event_type: str, handler: EventHandler):
+        self.observers[event_type] = handler
+    
+    def detach_observer(self, event_type: str, handler: EventHandler):
+        if event_type in self.observers:
+            self.observers[event_type].remove(handler)
+        
+    def notify_observers(self, event_type):
+        if event_type in self.observers:
+            for handler in self.observers[event_type].value():
+                handler.run_event()
 
 class PhysicsEngine:
     """ Handles creation and updating of all game objects that need to be 
@@ -66,15 +99,15 @@ class PhysicsEngine:
             segment_list.append(segment)
         PhysicsEngine.space.add(*segment_list)
     
-    def create_circle(radius: float):
+    def create_circle(radius: float) -> pymunk.Shape:
         mass = pymunk.area_for_circle(inner_radius=0, outer_radius=radius) * 2
         moment = pymunk.moment_for_circle(mass, inner_radius=0, outer_radius=radius)
         circle_body = pymunk.Body(mass, moment)
         circle_shape = pymunk.Circle(circle_body, radius)
         PhysicsEngine.add_to_space(circle_body, circle_shape)
-        return circle_shape._id
+        return circle_shape
      
-    def create_side(points: list[tuple[float, float]]) -> pymunk.Body.id:
+    def create_side(points: list[tuple[float, float]]) -> pymunk.Shape:
         """ The mass and moment here are really just symbolic, since they don't 
         get used for a KINEMATIC body_type. I wanted them here for strictly
         reference and completion.
@@ -87,7 +120,7 @@ class PhysicsEngine:
                                  transform=pymunk.Transform.translated(), 
                                  radius=1)
         PhysicsEngine.add_to_space(side_body, side_shape)
-        return side_shape._id
+        return side_shape
     
     @staticmethod
     def add_observer(observer, shape):

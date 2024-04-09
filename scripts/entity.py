@@ -111,7 +111,7 @@ class Movable(pygame.sprite.Sprite):
         """ The position of this object is expected to change every frame. This
         method needs to do something every time it gets called.
         """
-        self.rect.topleft = ((position[0] - self.asset.center_offset[0]), (position[1] - self.asset.center_offset[1]))
+        self.rect.topleft = ((position[0] - self.asset.center_offset[0]), (position[1] - self.asset.center_offset))
 
 class FixedPosition(pygame.sprite.Sprite):
     def __init__(self, groups: list[pygame.sprite.Group], asset: Asset, fixed_position: tuple[int, int]):
@@ -133,28 +133,3 @@ class FixedPosition(pygame.sprite.Sprite):
         """
         
         pass
-        
-
-class EventHandler(NamedTuple):
-    asset: Asset
-    event_func: callable
-    
-    def run_event(self):
-        self.asset.event_func()
-    
-class EventManager(ABC):
-    def __init__(self):
-        self.observers: dict[str, set[EventHandler]] = {}
-    
-    def attach_observer(self, event_type: str, handler: EventHandler):
-        self.observers[event_type] = handler
-    
-    def detach_observer(self, event_type: str, handler: EventHandler):
-        # TODO: More error checking needed--specifically the case where a
-        if event_type in self.observers:
-            self.observers[event_type].remove(handler)
-        
-    def notify_observers(self, event_type):
-        if event_type in self.observers:
-            for handler in self.observers[event_type].value():
-                handler.run_event()
