@@ -5,24 +5,24 @@ from abc import ABC, abstractmethod
 import pygame
 from pygame import Rect, mask, Surface, Color
 
-class Asset(pygame.sprite.Sprite):
+class Asset:
     """ An Asset handles ONLY the visual aspect of a game object. """
     class CIRCLE(NamedTuple):
-        radius: float
+        radius: int
         
-        def get_center(self) -> tuple[float, float]:
+        def get_center(self) -> tuple[int, int]:
             return (self.radius, self.radius)
     
     class POLY(NamedTuple):
-        width: float
-        height: float
-        vertices: list[tuple[float, float]]
+        width: int
+        height: int
+        vertices: list[tuple[int, int]]
     
     class BOX(NamedTuple):
-        width: float
-        height: float
+        width: int
+        height: int
         
-        def get_corners(self) -> list[tuple[float, float]]:
+        def get_corners(self) -> list[tuple[int, int]]:
             return [(0, 0), 
                     (0, self.height), 
                     (self.width, self.height),
@@ -35,89 +35,105 @@ class Asset(pygame.sprite.Sprite):
     def __init__(self, 
                  shape: CIRCLE | POLY | BOX, 
                  color: Color,
-                 base_image: Optional[Surface] = None):
+                 surface: Optional[Surface] = None):
         self.shape = shape
         self.color = color
-        self.base_image = base_image # Really, only Polygon Sides should be using a base_image
+        self.surface = surface
+        self.left_top = (0, 0)
+        self.width_height = (0, 0)
         
         if isinstance(self.shape, Asset.CIRCLE):
-            self.create_circle_image()
+            self.image = self.create_circle_image()
         elif isinstance(self.shape, Asset.POLY):
-            self.create_poly_image()
+            self.image = self.create_poly_image()
         elif isinstance(self.shape, Asset.BOX):
-            self.create_box_image()
-            
-        self.rect = Rect(self.image.get_rect())
+            self.image = self.create_box_image()
+        
+        self.rect = self.image.get_rect()
+        self.center_offset = self.rect.center
         self.mask = mask.from_surface(self.image)
     
-    def create_circle_image(self):
-        if self.base_image == None:
-            self.base_image = Surface((self.shape.radius*2, self.shape.radius*2))
-        self.image = pygame.draw.circle(self.base_image, 
-                                        self.color, 
-                                        self.shape.get_center(), 
-                                        self.shape.radius)
+    def create_circle_image(self) -> Surface:
+        self.width_height = (self.shape.radius*2, self.shape.radius*2)
+        if self.surface == None:
+            self.surface = Surface(self.width_height)
+            self.image = self.surface.subsurface(self.left_top, self.width_height)
+        else:
+            self.image = Surface(self.width_height)
+        pygame.draw.circle(self.image, 
+                           self.color, 
+                           self.shape.get_center(), 
+                           self.shape.radius)
+        return self.image
     
-    def create_poly_image(self):
-        if self.base_image == None:
-            self.base_image = Surface((self.shape.width, self.shape.height))
-        self.image = pygame.draw.polygon(self.base_image,
-                                         self.color,
-                                         self.shape.vertices,
-                                         width=0)
+    def create_poly_image(self) -> Surface:
+        self.width_height = (self.shape.width, self.shape.height)
+        if self.surface == None:
+            self.surface = Surface(self.width_height)
+            self.image = self.surface.subsurface(self.left_top, self.width_height)
+        else:
+            self.image = Surface(self.width_height)
+        pygame.draw.polygon(self.image, 
+                            self.color, 
+                            self.shape.vertices, 
+                            width=0)
+        return self.image
     
-    def create_box_image(self):
-        if self.base_image == None:
-            self.base_image = Surface((self.shape.width, self.shape.height))
-        self.image = pygame.draw.rect(self.base_image,
-                                      self.color,
-                                      ((0, 0), (self.shape.width, self.shape.height)),
-                                      border_radius=5)
+    def create_box_image(self) -> Surface:
+        self.width_height = (self.shape.width, self.shape.height)
+        inner_left_top = (self.left_top[0]+15, self.left_top[1]+15)
+        inner_width_height = (self.shape.width-15, self.shape.height-15)
+        if self.surface == None:
+            self.surface = Surface((self.shape.width, self.shape.height)).set_clip((inner_left_top, inner_width_height))
+            self.image = self.surface.subsurface(self.left_top, self.width_height)
+        else:
+            self.image = Surface(self.width_height)
+        pygame.draw.rect(self.image,
+                         self.color, 
+                         (self.left_top, self.width_height), 
+                         border_radius=5)
+        return self.image
 
-    @abstractmethod
-    def draw(self):
-        pass
-    
-    @abstractmethod
-    def update(self):
-        pass
-    
-class Movable(Asset, ABC):
-    def __init__(self, asset: Asset, start_position: list[float, float]):
-        super().__init__(asset)
+class Movable(pygame.sprite.Sprite):
+    def __init__(self, groups: list[pygame.sprite.Group], asset: Asset, start_position: list[int, int]):
+        self.groups = groups
+        super().__init__(groups)
+        self.asset = asset
+        self.image = self.asset.image
+        self.rect = self.asset.rect
+        self.mask = self.asset.mask
         self.position = start_position
+        
+    def draw(self, surface: Surface) -> None:
+        surface.blit(self.image, self.rect.topleft, self.image.get_size())
     
-    @abstractmethod
-    def draw(self, screen):
-        # TODO: Use Pygame and draw the asset at the correct position.
-        pass    
-    
-    @abstractmethod
-    def update(self):
+    def update(self, position: tuple[int, int]) -> None:
         """ The position of this object is expected to change every frame. This
         method needs to do something every time it gets called.
         """
-        self.position = self.rect.topleft
-        # TODO: Any other logic an Entity needs to take care of during update.
+        self.rect.topleft = ((position[0] - self.asset.center_offset[0]), (position[1] - self.asset.center_offset[1]))
 
-class FixedPosition(Asset, ABC):
-    def __init__(self, asset: Asset, screen_position: list[float, float]):
-        super().__init__(asset)
-        self.screen_position = screen_position
+class FixedPosition(pygame.sprite.Sprite):
+    def __init__(self, groups: list[pygame.sprite.Group], asset: Asset, fixed_position: tuple[int, int]):
+        super().__init__(groups)
+        self.image = asset.image
+        self.rect = asset.rect
+        self.mask = asset.mask
+        self.fixed_position = fixed_position
     
-    @abstractmethod
-    def draw(self, screen):
-        """ This method will ONLY change the data (text) displayed on this 
-        Entity. It will be drawn in the same position every time.
+    def draw(self, surface) -> None:
+        """ This method will ONLY change the data displayed on this Entity. It 
+        will be drawn in the same position every time.
         """
-        pass
+        surface.blit(self.image, self.fixed_position, self.image.get_size())
     
-    @abstractmethod
-    def update(self):
+    def update(self) -> None:
         """ This method needs to call check_change() if there are any changes 
         before calling draw().
         """
+        
         pass
+        
 
 class EventHandler(NamedTuple):
     asset: Asset

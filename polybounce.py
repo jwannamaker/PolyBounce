@@ -1,21 +1,60 @@
 import random
+import json
 import numpy as np
 from abc import ABC, abstractmethod
 
 import pygame
-from pygame import Vector2, Surface, Color, Font
+from pygame import Surface, Color, Font
 import pymunk
 
 from scripts.entity import Asset, Movable, FixedPosition
 from scripts.physics import PhysicsEngine
 
+class UI:
+    PALETTE: dict[str, list[tuple[int, int, int]]]
+    FONT_DIR: str
+    SCREEN_SIZE: tuple[int, int]
+    CENTER: tuple[int, int]
+    font: Font
+    
 class Game(ABC):
+    
     def __init__(self):
+        self.ui: UI = UI()
         self.all_entities = pygame.sprite.Group()
+        self.player_group = pygame.sprite.Group()
+        self.enemy_group = pygame.sprite.Group()
         self.fps = 60
         self.frame_start: float = 0.0 # milliseconds
         self.running = False
         self.screen: Surface = None
+    
+    def grab_palette(self, json_filename: str):
+        with open(json_filename, 'r') as palette_file:
+            self.ui.PALETTE = json.load(palette_file)
+            
+        for key in self.ui.PALETTE.keys():
+            self.ui.PALETTE[key] = [tuple(value) for value in self.ui.PALETTE[key]]
+        
+    def load_font(self, font_filename: str, font_size: int = 18):
+        font_file = self.ui.FONT_DIR + font_filename
+        self.ui.font = pygame.font.Font(font_file, font_size)
+    
+    def get_color(self, color_name: str) -> Color:
+        return Color(self.ui.PALETTE[color_name][0])
+    
+    def get_colors(self, color_name: str, gradients: int) -> Color:
+        return list(Color(self.ui.PALETTE[color_name][i] for i in gradients))
+
+    def get_shuffled_colors(self, N):
+        colors = list(self.ui.PALETTE.keys())
+        colors.remove('white')
+        colors.remove('black')
+        random.shuffle(colors)
+        
+        # random_colors = random.sample(colors, N)
+        return random.sample(colors, N)
+    
         
     def set_fps(self, fps):
         self.fps = fps
@@ -53,7 +92,8 @@ class Player(Movable):
     total_score = 0
     
     def __init__(self, game: Game, asset: Asset, start_position: tuple[float, float]):
-        super().__init__(asset, start_position)
+        self.groups = [game.all_entities, game.player_group]
+        super().__init__(self.groups, asset, start_position)
         self.game = game
         self.level_score = 0
         self.colors_to_play: set[str] = {}
@@ -77,22 +117,10 @@ class Player(Movable):
         blocks.
         """
         pass
-    
-    def draw(self, screen):
-        pass
-    
-    def update(self):
-        pass
 
 class Enemy(Movable):
     def __init__(self, asset: Asset, start_position: tuple[float, float]):
         super().__init__(asset, start_position)
-        
-    def draw(self, screen):
-        pass
-    
-    def update(self):
-        pass
 
 class Polygon:
     """ Polygon is Factory of Sides. """
@@ -204,53 +232,29 @@ class TextBox(FixedPosition):
             self.text = text
             self.draw()
 
-class UI:
-    PALETTE: dict[str, tuple[int, int, int]]
-    
-    def __init__(palette: dict[str, tuple[int, int, int]],
-                font_dir: str): 
-        UI.PALETTE = palette
-        FONT_DIR = font_dir
-        font = pygame.font.SysFont('Arial', 18)    # Load default font
-        SCREEN_SIZE = pygame.display.get_window_size()
-        CENTER = Vector2(SCREEN_SIZE // 2)
-        
-    def load_font(self, font_filename, font_size=18):
-        font_file = self.FONT_DIR + font_filename
-        self.font = pygame.font.Font(font_file, font_size)
-    
-    def get_color(self, color_str):
-        return Color(self.PALETTE[color_str])
-
-    def get_shuffled_colors(self, N):
-        random.shuffle(self.PALETTE.keys())
-        return random.sample(self.PALETTE, N)
-
 class Level:
+    level_number = 0
+    
     """ Level is an asset factory. """
     def __init__(self, game: Game, level_number: int, difficulty: dict):
         self.game = game
-        self.level_number = level_number
+        Level.level_number = level_number
         self.difficulty = difficulty
         self.enemies_spawned = 0
 
     def spawn_enemies(self):
         """ Spawn enemies based on current level's difficulty. """
-        enemy = Asset(Asset.POLY(), )
+        enemy = Asset(shape=Asset.POLY(), color=self.game.ui.get_color('light-blue'))
         self.game.all_entities.add(enemy)
         self.enemies_spawned += 1 # Increase per each SIDE that's spawned
-
-    def reset_player_position(self):
-        """ Reset player position to starting position. """
-        self.game.player.reinit_position
-
+        
     def increase_difficulty(self):
         """Increase difficulty for the next level"""
-        self.level_number += 1
-        self.difficulty = self.calculate_next_difficulty()
+        Level.level_number += 1
+        self.difficulty = self.next_difficulty(self.level_number)
         self.enemies_spawned = 0
 
-    def calculate_next_difficulty(self, k):
+    def next_difficulty(self, k):
         # Example: increase enemy count and spawn rate for the next level
         next_difficulty = {
             'Player': [i for i in range(k)],
@@ -261,38 +265,38 @@ class Level:
     
 class PolyBounce(Game):
     def __init__(self):
-        self.PALLETE = {
-            'blue': (150, 170, 200),
-            'cyan': (144, 239, 240),
-            'drk-purple': (63, 45, 112),
-            'lt-blue': (170, 224, 241),
-            'lt-purple': (150, 100, 187),
-            'magenta': (129, 55, 113),
-            'mid-blue': (83, 91, 113),
-            'pink': (201, 93, 177), 
-            'red': (255, 100, 100),
-            'white': (250, 250, 250)
-        }
+        super().__init__()
+        self.grab_palette('data/palette.json')
+        
         self.fps = 60
         self.frame_start: float = 0.0 # milliseconds
         self.running = False
-        
         pygame.init()
-        self.screen = pygame.display.set_mode((pygame.display.get_desktop_sizes()[0]))
+        self.screen = pygame.display.set_mode(pygame.display.get_desktop_sizes()[0])
         pygame.display.set_caption('PolyBounce')
+        pygame.display.toggle_fullscreen()
+        self.ui.SCREEN_SIZE = (self.screen.get_size()[0], self.screen.get_size()[1])
+        self.ui.CENTER = (self.ui.SCREEN_SIZE[0] // 2, self.ui.SCREEN_SIZE[1] // 2)
         pygame.display.message_box('Welcome to PolyBounce!', 
-                                   'Fill up the Color Meters by bouncing on the appropriate Rings.\n\n\
-                                       Press [ENTER] to toggle Falling.')
-        self.background = Surface(self.screen.get_size()).convert()
+                                   'Your Color Meters are on the right -->\n\
+                                    Fill them up by bouncing on the correct color rings!\n\n\
+                                    Press [ENTER] to toggle Falling.\n\
+                                    Press [ESC] to Quit.')
+        self.background = Surface(self.screen.get_size())
         self.background.fill((0, 0, 0))
         
         self.all_entities = pygame.sprite.Group()
-        self.player = Player(self, Asset.CIRCLE(radius=10), self.PALLETE['white'],)
-        self.difficulty = {'Color Queue': {random.sample(self.PALLETE.keys(), 3)}, 
-                           'Rings': [random.sample(self.PALLETE.keys(), random.choice(3, 4)) for _ in range(3)]}
-        self.levels = Level(self, 0, {'Player Meters': [3, 3, 3],
-                                      'Rings Sizes': [3, 4, 5]})
-
+        self.player_group = pygame.sprite.Group()
+        self.enemy_group = pygame.sprite.Group()
+        
+        self.player_asset = Asset(Asset.CIRCLE(radius=10), self.get_color('white'))
+        self.player = Player(self, self.player_asset, self.ui.CENTER)
+        
+        # self.level = Level(0)
+    
+    def reint_player(self):
+        
+        pass
     
     def handle_user_input(self):
         for event in pygame.event.get():
@@ -307,10 +311,9 @@ class PolyBounce(Game):
                 pass
     
     def process_game_logic(self):
-        """ Apply updates to all the game objects according to current game 
-        state. Retrieve the position data from the PhysicsEngine.
-        """
-        self.all_entities.update()
+        """ Retrieve the position data from the PhysicsEngine. """
+        position = self.ui.CENTER
+        self.player_group.update(position)
     
     def render(self):
         self.screen.blit(self.background, (0, 0))
@@ -320,10 +323,6 @@ class PolyBounce(Game):
         # self.clock.tick_busy_loop(self.fps)
         PhysicsEngine.step_by(self.get_dt())
         pygame.display.flip()
-    
-    def create_next_level(self, difficulty_dict):
-        #TODO Use the defined difficulty dictionary to create the correct difficulty per level.
-        pass
     
 if __name__ == "__main__":
     PolyBounce().start()
