@@ -1,14 +1,22 @@
 import random
 import json
 import numpy as np
+from enum import Enum, auto
 from abc import ABC, abstractmethod
 
 import pygame
-from pygame import Surface, Color, Font
+from pygame import Surface, Color, Font, Vector2
 import pymunk
 
-from scripts.entity import Asset, Movable, FixedPosition
+from scripts.entity import Asset, REG_POLY, POLY, CIRCLE, Movable, FixedPosition
 from scripts.physics import PhysicsEngine
+
+WALL_THICKNESS = 50
+
+class RING_SIZE(Enum):
+    INNER = 100
+    MIDDLE = 150
+    OUTER = 200
 
 class UI:
     PALETTE: dict[str, list[tuple[int, int, int]]]
@@ -17,7 +25,7 @@ class UI:
     CENTER: tuple[int, int]
     font: Font
     
-class Game(ABC):
+class Game:
     
     def __init__(self):
         self.ui: UI = UI()
@@ -43,8 +51,8 @@ class Game(ABC):
     def get_color(self, color_name: str) -> Color:
         return Color(self.ui.PALETTE[color_name][0])
     
-    def get_colors(self, color_name: str, gradients: int) -> Color:
-        return list(Color(self.ui.PALETTE[color_name][i] for i in gradients))
+    def get_gradients(self, color_name: str, gradients: int) -> list[Color]:
+        return [Color(self.ui.PALETTE[color_name][i]) for i in range(gradients)]
 
     def get_shuffled_colors(self, N):
         colors = list(self.ui.PALETTE.keys())
@@ -52,10 +60,8 @@ class Game(ABC):
         colors.remove('black')
         random.shuffle(colors)
         
-        # random_colors = random.sample(colors, N)
         return random.sample(colors, N)
     
-        
     def set_fps(self, fps):
         self.fps = fps
     
@@ -89,20 +95,19 @@ class Game(ABC):
         pass
 
 class Player(Movable):
-    total_score = 0
-    
-    def __init__(self, game: Game, asset: Asset, start_position: tuple[float, float]):
-        self.groups = [game.all_entities, game.player_group]
-        super().__init__(self.groups, asset, start_position)
+    def __init__(self, game: Game, asset: Asset):
         self.game = game
+        self.groups = [self.game.all_entities, self.game.player_group]
+        super().__init__(self.groups, asset.shape, asset.color, asset.position)
         self.level_score = 0
-        self.colors_to_play: set[str] = {}
+        self.total_score = 0
         
     def save_and_clear_score(self):
-        Player.total_score += self.level_score
+        # TODO: save the score in a json for highscores
+        self.total_score += self.level_score
         self.level_score = 0
     
-    def calculate_score(self):
+    def get_score(self):
         """ Calculate the score base_imaged on the current number of hits times the
         level the hits happened on.
         """
@@ -119,110 +124,52 @@ class Player(Movable):
         pass
 
 class Enemy(Movable):
-    def __init__(self, asset: Asset, start_position: tuple[float, float]):
-        super().__init__(asset, start_position)
-
-class Polygon:
-    """ Polygon is Factory of Sides. """
-    def __init__(self, N, physics_engine: PhysicsEngine):
+    def __init__(self, game: Game, asset: Asset):
+        self.groups = [self.game.all_]
+        super().__init__(asset)
+        self.hits_taken = 0
+        self.hits_to_die = 1
+        
+    def take_hit(self, hit_strength: int = 1) -> bool:
+        self.hits_taken += hit_strength
+        if self.hits_taken >= self.hits_to_die:
+            # TODO: DETACH FROM PHYSICS ENGINE OBSERVERS
+            self.kill()
+        
+class RingFactory:
+    def __init__(self, game: Game, N: int) -> None:
+        self.game = game
         self.N = N
-        self.theta = (np.pi * 2) / self.N
-        
-        self.body.body_type = pymunk.Body.KINEMATIC
-        self.start_angle = self.body.angle
-        self.rotating = False 
-        
-    def get_vertices(self, radius):
-        """ Offset is the distance for x, y to the center of the regular polygon 
-        vertices generated from this method.
-        """
-        offset_x = self.radius
-        offset_y = self.radius
-        tilt = (np.pi - self.theta) / 2
-        vertices = []
-        for i in range(1, self.N + 1):
-            x = (radius * np.cos(tilt + self.theta * i)) + offset_x
-            y = (radius * np.sin(tilt + self.theta * i)) + offset_y
-            vertices.append((x, y))
-        return vertices
+        self.base_colors = self.game.get_shuffled_colors(self.N)
+        self.colors = self.game.get_gradients(self.base_colors, self.N)
     
-    def get_subsurface(self):
-        """ New surface inherits palette, colorkey, and alpha settings. """
-        return self.image.subsurface((0, 0, self.radius * 2, self.radius * 2))
-    
-    def get_color_at(self, x, y):
-        local_coord = pymunk.pygame_util.from_pygame((x, y))
-        return self.image.get_at(local_coord)
-    
-    def get_sides(self):
-        colors = self.game.get_shuffled_colors(self.N)
-        for i, color in enumerate(colors):
-            j = i + 1 if i < self.N - 1 else 0
-            inner = [self.inner_vertices[i], self.inner_vertices[j]]
-            outer = [self.vertices[i], self.vertices[j]]
-            points = [inner[0], outer[0], outer[1], inner[1]]
-            
-            new_shape = self.create_side_shape(color, points)
-            new_sprite = self.create_side_sprite(color, points)
-            
-            self.side_sprites.add(new_sprite)
-            self.side_shapes.append(new_shape)
-    
-    def remove_side(self, color):
+    def create_ring(self, size: RING_SIZE, angular_velocity: float) -> list[pymunk.Shape]:
+        outer_radius = size
+        inner_radius = size - WALL_THICKNESS
         
-        pass
-    
-    def cw_rotate(self, dt):
-        if self.rotating:
-            self.body.angular_velocity = max(20, self.body.angular_velocity + 1)
+        outer_points = REG_POLY.get_vertices(self.N, outer_radius)
+        inner_points = REG_POLY.get_vertices(self.N, inner_radius)
         
-    def ccw_rotate(self, dt):   
-        if self.rotating:
-            self.body.angular_velocity = min(-20, self.body.angular_velocity - 1)
-        
-    def render(self):
-        for side in self.sides:
-            self.game.screen.blit(side.image, self.rect.topleft)
-        self.game.screen.blit(self.image, self.rect.topleft)
+        # Splitting and regrouping vertices into (inner_start, OUTER_start, OUTER_END, inner_END)
+        for i in self.N:
+            self.base_colors[i]
 
-class Side:
-    def __init__(self, 
-                 polygon: Polygon, 
-                 radius: float, 
-                 start_angle: float,    # radians 
-                 end_angle: float,      # radians 
-                 wall_thickness: int = 50):      
-        self.polygon = polygon
-        self.start_angle = start_angle
-        self.end_angle = end_angle
-        self.wall_thickness = wall_thickness
-        
-        self.outer_radius = radius
-        self.inner_radius = self.outer_radius - self.wall_thickness
-        self.vertices = self.get_vertices()
-        
-    def get_vertices(self):
-        """ Uses polar coordinates to get the inner and outer vertices ordered
-        into a convex hull (aka inner outer Outer Inner). The vertices are 
-        """
-        center = (self.outer_radius, self.outer_radius)
-        
-        inner_start = pygame.math.Vector2(center) + pygame.math.Vector2().from_polar((self.inner_radius, -self.start_angle))
-        inner_end = pygame.math.Vector2(center) + pygame.math.Vector2().from_polar((self.inner_radius, -self.end_angle))
-        outer_start = pygame.math.Vector2(center) + pygame.math.Vector2().from_polar((self.outer_radius, -self.start_angle))
-        outer_end = pygame.math.Vector2(center) + pygame.math.Vector2().from_polar((self.outer_radius, -self.end_angle))
-        
-        return [inner_start, outer_start, outer_end, inner_end]
+class Side(Movable):
+    def __init__(self,
+                 game: Game,
+                 asset: Asset):
+        super().__init__()
 
 class TextBox(FixedPosition):
     def __init__(self, asset: Asset, screen_position: tuple[float, float], text: str):
-        super().__init__(asset, screen_position)
+        super().__init__(asset)
         self.text = text
+        self.screen_position = screen_position
     
     def draw(self, screen: Surface, font: Font):
         self.image.blit(font.render(self.text, True, self.color), 
                         (15, 15), 
-                        (self.rect.width-15, self.rect.height-15))
+                        (self.rect.width - 15, self.rect.height - 15))
         screen.blit(self.image, 
                     self.screen_position,
                     (self.rect.width, self.rect.height))
@@ -231,37 +178,6 @@ class TextBox(FixedPosition):
         if self.text != text:
             self.text = text
             self.draw()
-
-class Level:
-    level_number = 0
-    
-    """ Level is an asset factory. """
-    def __init__(self, game: Game, level_number: int, difficulty: dict):
-        self.game = game
-        Level.level_number = level_number
-        self.difficulty = difficulty
-        self.enemies_spawned = 0
-
-    def spawn_enemies(self):
-        """ Spawn enemies based on current level's difficulty. """
-        enemy = Asset(shape=Asset.POLY(), color=self.game.ui.get_color('light-blue'))
-        self.game.all_entities.add(enemy)
-        self.enemies_spawned += 1 # Increase per each SIDE that's spawned
-        
-    def increase_difficulty(self):
-        """Increase difficulty for the next level"""
-        Level.level_number += 1
-        self.difficulty = self.next_difficulty(self.level_number)
-        self.enemies_spawned = 0
-
-    def next_difficulty(self, k):
-        # Example: increase enemy count and spawn rate for the next level
-        next_difficulty = {
-            'Player': [i for i in range(k)],
-            'Ring Side Count': [i for i in range(k)],
-            'Ring Colors': [i for i in range(k)]
-        }
-        return next_difficulty
     
 class PolyBounce(Game):
     def __init__(self):
@@ -289,10 +205,9 @@ class PolyBounce(Game):
         self.player_group = pygame.sprite.Group()
         self.enemy_group = pygame.sprite.Group()
         
-        self.player_asset = Asset(Asset.CIRCLE(radius=10), self.get_color('white'))
+        self.player_asset = Asset(CIRCLE(radius=10), self.get_color('white'), self.ui.CENTER)
         self.player = Player(self, self.player_asset, self.ui.CENTER)
-        
-        # self.level = Level(0)
+        self.enemy 
     
     def reset_player(self):
         self.player.level_score = 0
@@ -304,9 +219,11 @@ class PolyBounce(Game):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                    
+                
             if event.type == pygame.KEYUP:
                 # TODO: Implement the player input with EventManager
+                if event.key == pygame.K_RETURN:    
+                    self.player.stop_moving()
                 pass
     
     def process_game_logic(self):

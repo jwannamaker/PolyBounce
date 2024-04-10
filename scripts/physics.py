@@ -1,10 +1,10 @@
-import ABC
-from collections import NamedTuple
+from typing import NamedTuple
 
 import pymunk
 
-from scripts.entity import Asset
+from scripts.entity import Asset, BOX
 
+''''
 class EventHandler(NamedTuple):
     """ EventHandler bundles together the Asset (the observer to event changes) 
     with the function that will be called when the event occurs.
@@ -12,10 +12,10 @@ class EventHandler(NamedTuple):
     asset: Asset
     event_func: callable
     
-    def run_event(self):
-        self.asset.event_func()
+    def run_event(self, data):
+        self.asset.event_func(data)
     
-class EventManager(ABC):
+class EventManager:
     """ EventManager allows the use of a subscription model for changes. It uses
     EventHandlers that get triggered when a certain 'event_type' is passed to 
     (method) notify_observers 
@@ -30,43 +30,51 @@ class EventManager(ABC):
         if event_type in self.observers:
             self.observers[event_type].remove(handler)
         
-    def notify_observers(self, event_type):
+    def notify_observers(self, event_type, data):
         if event_type in self.observers:
             for handler in self.observers[event_type].value():
-                handler.run_event()
+                handler.run_event(data)
+'''
 
-class PhysicsEngine:
+class Singleton(type):
+    _instance = None
+    
+    def __call__(cls, *args, **kwargs):
+        if cls is not cls._instance:
+            cls._instance = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instance
+
+class PhysicsEngine(metaclass=Singleton):
     """ Handles creation and updating of all game objects that need to be 
     physically simulated. Provides easy access to the Pymunk processes for my 
     purposes, without making other classes or functions overly complex. 
     """
+    
     space = pymunk.Space()
     space.gravity = (0, 1200)
+    collision_handlers = []
     observers = []
-    
-    def __init__(self):
-        """ Creates the collision handlers. """
-        self.handler = self.space.add_collision_handler(1, 2)
-        self.handler.begin = PhysicsEngine.begin
-        self.handler.pre_solve = PhysicsEngine.pre_solve
-        self.handler.post_solve = PhysicsEngine.post_solve
-        self.handler.separate = PhysicsEngine.separate
-    
-    def get_collision_type(self, color_str, entity_type):
+        
+    def add_collision_handler():
         """ TODO: Generates a bitmask given the entity type and the color. """
-        return self.ui.PALETTE[color_str]
+        handler = PhysicsEngine.space.add_collision_handler(1, 2)
+        handler.begin = PhysicsEngine.begin
+        handler.pre_solve = PhysicsEngine.pre_solve
+        handler.post_solve = PhysicsEngine.post_solve
+        handler.separate = PhysicsEngine.separate
+        PhysicsEngine.collision_handlers.append(handler)
 
     def add_to_space(position: tuple[float, float], body: pymunk.Body, shape: pymunk.Shape):
         body.position = list(position)
         shape.elasticity = 0.999
-        shape.friction = 0.67
+        shape.friction = 0.45
         PhysicsEngine.space.add(body, shape)
     
     def create_walls(screen_size: tuple[int, int]):
         """ The body is already added to the space, since we access the given
         static_body.
         """
-        corners = Asset.BOX(screen_size[0], screen_size[1]).get_corners()
+        corners = BOX(screen_size[0], screen_size[1]).get_corners()
         for i in range(len(corners)):
             j = (i + 1) % len(corners)
             segment = pymunk.Segment(PhysicsEngine.space.static_body, corners[i], corners[j], 1)
@@ -107,20 +115,22 @@ class PhysicsEngine:
         PhysicsEngine.add_to_space(circle_body, circle_shape)
         return circle_shape
      
-    def create_side(points: list[tuple[float, float]]) -> pymunk.Shape:
-        """ The mass and moment here are really just symbolic, since they don't 
-        get used for a KINEMATIC body_type. I wanted them here for strictly
-        reference and completion.
-        """
+    def create_poly(points: list[tuple[float, float]], 
+                    center_position: tuple[float, float],
+                    angular_velocity: float) -> pymunk.Shape:
+        # TODO: Alter the way that bodies for sides are created ? So not every side segment has its own body
         mass = pymunk.area_for_poly(points)
         moment = pymunk.moment_for_poly(mass, points)
         side_body = pymunk.Body(mass, moment, pymunk.Body.KINEMATIC)
+        side_body.angular_velocity = angular_velocity
         side_shape = pymunk.Poly(body=side_body, 
-                                 vertices=points, 
-                                 transform=pymunk.Transform.translated(), 
+                                 vertices=points,
                                  radius=1)
-        PhysicsEngine.add_to_space(side_body, side_shape)
+        PhysicsEngine.add_to_space(center_position, side_body, side_shape)
         return side_shape
+    
+    def get_centroid(shape: pymunk.Shape) -> tuple[int, int]:
+        return shape.center_of_gravity
     
     @staticmethod
     def add_observer(observer, shape):
@@ -135,7 +145,8 @@ class PhysicsEngine:
     @staticmethod
     def notify_observers(event_type, data):
         for observer in PhysicsEngine.observers:
-            observer.update(event_type, data)
+            if event_type == 'testing_event':
+                observer.test_notified(data)
             # TODO: complete this method so that the position goes out to the
             # subscribed shapes' Polygons.
 
