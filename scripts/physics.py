@@ -1,8 +1,11 @@
-from typing import NamedTuple
+from typing import Optional
 
 import pymunk
+from pymunk import pygame_util
+import pygame
+from pygame import Surface
 
-from scripts.entity import Asset, BOX
+from scripts.asset import Asset, BOX
 
 ''''
 class EventHandler(NamedTuple):
@@ -53,9 +56,9 @@ class PhysicsEngine(metaclass=Singleton):
     space = pymunk.Space()
     space.gravity = (0, 1200)
     collision_handlers = []
-    observers = []
+    observers: dict[list[Asset]] = {}
         
-    def add_collision_handler():
+    def add_collision_handler(shape, other_shape):
         """ TODO: Generates a bitmask given the entity type and the color. """
         handler = PhysicsEngine.space.add_collision_handler(1, 2)
         handler.begin = PhysicsEngine.begin
@@ -129,27 +132,54 @@ class PhysicsEngine(metaclass=Singleton):
         PhysicsEngine.add_to_space(center_position, side_body, side_shape)
         return side_shape
     
+    def get_points(shape: pymunk.Shape) -> list[tuple[int, int]]:
+        return shape.get_vertices()
+    
     def get_centroid(shape: pymunk.Shape) -> tuple[int, int]:
         return shape.center_of_gravity
     
+    '''
     @staticmethod
-    def add_observer(observer, shape):
-        if observer not in PhysicsEngine.observers:
-            PhysicsEngine.observers.append(observer)
-
+    def add_observer(observer_asset: Asset, observed_shape: pymunk.Shape):
+        if str(observed_shape) not in PhysicsEngine.observers.keys():
+            PhysicsEngine.observers[str(observed_shape)] = (observed_shape, observer_asset)
+    
     @staticmethod
     def remove_observer(observer):
-        if observer in PhysicsEngine.observers:
-            PhysicsEngine.observers.remove(observer)
+        if observer in PhysicsEngine.observers.values():
+            
 
     @staticmethod
-    def notify_observers(event_type, data):
-        for observer in PhysicsEngine.observers:
-            if event_type == 'testing_event':
-                observer.test_notified(data)
+    def notify_observers(event_type, data: Optional[any]):
+        
+        if event_type == 'testing_event':
+            for observer in PhysicsEngine.observers:
+                observer[0].test_notified(data)
             # TODO: complete this method so that the position goes out to the
             # subscribed shapes' Polygons.
-
+        if event_type == 'update':
+            for observer in PhysicsEngine.observers:
+                observer[0].notified(observer[1])
+                    
+        if event_type == 'step_by':
+            for shape in PhysicsEngine.observers.keys():
+                PhysicsEngine.space.reindex_shape(shape)
+    '''
+    def start_simulation(screen: Surface):
+        draw_options = pygame_util.DrawOptions(screen)
+        clock = pygame.time.Clock()
+        PhysicsEngine.space.debug_draw(draw_options)
+        while True:
+            screen.fill((0, 0, 0))
+            PhysicsEngine.space.debug_draw(draw_options)
+            pygame.display.flip()
+            clock.tick(60)
+            PhysicsEngine.space.step(1.0 / 60.0)
+            if (pygame.time.get_ticks() // 1000) % 2 == 0:
+                print(pygame.time.get_ticks() // 1000)
+            if pygame.time.get_ticks() // 1000 >= 15:
+                return
+    
     @staticmethod
     def begin(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
         print('begin')
@@ -178,3 +208,4 @@ class PhysicsEngine(metaclass=Singleton):
     @staticmethod
     def step_by(dt: float):
         PhysicsEngine.space.step(dt)
+        PhysicsEngine.notify_observers('step_by')
