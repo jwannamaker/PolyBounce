@@ -6,3 +6,6 @@ pycparser==2.21
 pygame-ce==2.4.1
 pymunk==6.6.0
 wcwidth==0.2.13
+
+pytest>=8.1.1
+setuptools>=65.5.1

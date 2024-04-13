@@ -1,11 +1,9 @@
-from typing import Optional
-
 import pymunk
 from pymunk import pygame_util
 import pygame
 from pygame import Surface
 
-from scripts.asset import Asset, BOX
+from asset import Asset, BOX
 
 ''''
 class EventHandler(NamedTuple):

@@ -1,11 +1,10 @@
-import copy
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 import pymunk
 from pygame import Surface
 
-from scripts.asset import Asset
-from scripts.game import Game
+from asset import Asset
+from game import Game
 
 class Movable(Asset):
     def __init__(self, groups, shape, color, position, surface):

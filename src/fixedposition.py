@@ -1,9 +1,9 @@
 from pygame import Surface, Font
 
 import pymunk
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
-from scripts.asset import Asset
+from asset import Asset
 
 class FixedPosition(Asset):
     @abstractmethod
