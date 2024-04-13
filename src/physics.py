@@ -3,7 +3,8 @@ from pymunk import pygame_util
 import pygame
 from pygame import Surface
 
-from asset import Asset, BOX
+from asset.shape import BOX
+from asset import Asset
 
 ''''
 class EventHandler(NamedTuple):
@@ -130,10 +131,10 @@ class PhysicsEngine(metaclass=Singleton):
         PhysicsEngine.add_to_space(center_position, side_body, side_shape)
         return side_shape
     
-    def get_points(shape: pymunk.Shape) -> list[tuple[int, int]]:
+    def get_points(shape: pymunk.Shape) -> list[tuple[float, float]]:
         return shape.get_vertices()
     
-    def get_centroid(shape: pymunk.Shape) -> tuple[int, int]:
+    def get_centroid(shape: pymunk.Shape) -> tuple[float, float]:
         return shape.center_of_gravity
     
     '''

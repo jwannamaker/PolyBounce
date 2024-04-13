@@ -1,30 +1,28 @@
-import copy
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import NamedTuple, Optional
 
 import numpy as np
 import pygame
-from pygame import mask, Surface, Color, Rect
+from pygame import Surface, Color, Rect
 from pygame import gfxdraw
 
 
 class Shape(ABC):
     def __init__(self):
-        self.center_offset: tuple[int, int] = self.get_center_offset()
-        self.width: int = self.get_width()
-        self.height: int = self.get_height()
+        self.center_offset: tuple[float, float] = self.get_center_offset()
+        self.width: float = self.get_width()
+        self.height: float = self.get_height()
 
     @abstractmethod
-    def get_center_offset(self) -> tuple[int, int]:
+    def get_center_offset(self) -> tuple[float, float]:
         pass
 
     @abstractmethod
-    def get_width(self) -> int:
+    def get_width(self) -> float:
         pass
 
     @abstractmethod
-    def get_height(self) -> int:
+    def get_height(self) -> float:
         pass
 
     def get_blank_surface(self) -> Surface:
@@ -37,21 +35,21 @@ class Shape(ABC):
 
 @dataclass
 class CIRCLE(Shape):
-    radius: int
+    radius: float
 
     def __post_init__(self):
         super().__init__()
 
-    def get_center_offset(self) -> tuple[int, int]:
+    def get_center_offset(self) -> tuple[float, float]:
         return self.radius, self.radius
 
-    def get_width(self) -> int:
+    def get_width(self) -> float:
         return self.radius * 2
 
-    def get_height(self) -> int:
+    def get_height(self) -> float:
         return self.radius * 2
 
-    def get_image(self, color: Color) -> tuple[Surface, Rect]:
+    def get_image_rect(self, color: Color) -> tuple[Surface, Rect]:
         image = super().get_blank_surface()
         rect = pygame.draw.circle(image, color, self.get_center_offset(), self.radius)
         return image, rect
@@ -59,21 +57,21 @@ class CIRCLE(Shape):
 
 @dataclass
 class POLY(Shape):
-    vertices: list[tuple[int, int]]
+    vertices: list[tuple[float, float]]
 
     def __post_init__(self):
         super().__init__()
 
-    def get_center_offset(self) -> tuple[int, int]:
-        return self.get_width() // 2, self.get_height() // 2
+    def get_center_offset(self) -> tuple[float, float]:
+        return self.get_width() / 2, self.get_height() / 2
 
-    def get_width(self) -> int:
+    def get_width(self) -> float:
         self.vertices.sort(key=lambda vertex: vertex[0])
         min_x = self.vertices[0][0]
         max_x = self.vertices[len(self.vertices)][0]
         return max_x - min_x
 
-    def get_height(self) -> int:
+    def get_height(self) -> float:
         self.vertices.sort(key=lambda vertex: vertex[1])
         min_y = self.vertices[0][1]
         max_y = self.vertices[len(self.vertices)][1]
@@ -88,21 +86,21 @@ class POLY(Shape):
 @dataclass
 class REG_POLY(Shape):
     N: int
-    radius: int
+    radius: float
 
     def __post_init__(self):
         super().__init__()
 
-    def get_center_offset(self) -> tuple[int, int]:
+    def get_center_offset(self) -> tuple[float, float]:
         return self.radius, self.radius
 
-    def get_width(self) -> int:
+    def get_width(self) -> float:
         return self.radius
 
-    def get_height(self) -> int:
+    def get_height(self) -> float:
         return self.radius
 
-    def get_vertices(self) -> list[tuple[int, int]]:
+    def get_vertices(self) -> list[tuple[float, float]]:
         theta = (2 * np.pi) / self.N  # Exterior angle, the radians between each vertex.
         tilt = (np.pi - theta) / 2  # Causes the generated polygon to always have a 'floor'.
         vertices = []
@@ -120,23 +118,23 @@ class REG_POLY(Shape):
 
 @dataclass
 class BOX(Shape):
-    width: int
-    height: int
+    width: float
+    height: float
     border: int
 
     def __post_init__(self):
         super().__init__()
 
-    def get_center_offset(self) -> tuple[int, int]:
-        return self.width // 2, self.height // 2
+    def get_center_offset(self) -> tuple[float, float]:
+        return self.width / 2, self.height / 2
 
-    def get_width(self) -> int:
+    def get_width(self) -> float:
         return self.width
 
-    def get_height(self) -> int:
+    def get_height(self) -> float:
         return self.height
 
-    def get_corners(self) -> list[tuple[int, int]]:
+    def get_corners(self) -> list[tuple[float, float]]:
         return [(0, 0),
                 (0, self.height),
                 (self.width, self.height),
@@ -144,25 +142,9 @@ class BOX(Shape):
 
     def get_image_rect(self, color: Color) -> tuple[Surface, Rect]:
         image = super().get_blank_surface()
-        pygame.draw.rect(image, color, self.get_corners(), border_radius=5)
-        image.set_clip([self.border, self.border, self.width - self.border, self.height - self.border])
+        pygame.draw.rect(image, [70, 70, 70], [0, 0, self.width, self.height], border_radius=25)
+        pygame.draw.rect(image, color, [self.border,
+                                        self.border,
+                                        self.width-(self.border*2),
+                                        self.height-(self.border*2)], border_radius=25)
         return image, image.get_rect()
-
-
-class Asset(pygame.sprite.Sprite):
-    def __init__(self,
-                 groups: list[pygame.sprite.Group],
-                 shape: CIRCLE | POLY | REG_POLY | BOX,
-                 color: Color,
-                 position: tuple[int, int],
-                 surface: Optional[Surface] = None):
-        self.groups = groups
-        super().__init__(groups)
-        self.shape = shape
-        self.color = color
-        self.position = list(position)
-        self.surface = surface
-
-        self.image, self.rect = self.shape.get_image_rect(self.color)
-        self.image.set_colorkey([0, 0, 0])
-        self.mask = mask.from_surface(self.image)

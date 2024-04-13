@@ -5,7 +5,6 @@ import pytest
 import pygame
 from pygame import Surface, Color
 
-from game import Game
 from physics import PhysicsEngine
 from asset import Asset, REG_POLY, CIRCLE
 from movable import Player
