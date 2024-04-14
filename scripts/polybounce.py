@@ -1,10 +1,11 @@
+import sys
 import random
 import json
 
 import pygame
 from pygame import Surface, Color
 
-from ball import Ball
+from ball import Ball, Slingshot
 from borderedbox import BorderedBox
 
 
@@ -78,7 +79,7 @@ class PolyBounce:
                 'border-radius': 15,    # in pixels
                 'position': [3, 2.5],      # center, multiplied by unit column/row
                 'font-size': 60,
-                'bg-color': self.PALETTE['black'][2],
+                'bg-color': self.PALETTE['black'][1],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_level
             },
@@ -89,7 +90,7 @@ class PolyBounce:
                 'border-radius': 15,    # in pixels
                 'position': [29, 1],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][2],
+                'bg-color': self.PALETTE['black'][1],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_level_clock
             },
@@ -100,7 +101,7 @@ class PolyBounce:
                 'border-radius': 15,    # in pixels
                 'position': [29, 2.5],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][2],
+                'bg-color': self.PALETTE['black'][1],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_inner_clock
             },
@@ -111,7 +112,7 @@ class PolyBounce:
                 'border-radius': 15,    # in pixels
                 'position': [29, 5],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][2],
+                'bg-color': self.PALETTE['black'][1],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_middle_clock
             },
@@ -122,7 +123,7 @@ class PolyBounce:
                 'border-radius': 15,    # in pixels
                 'position': [29, 7.5],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][2],
+                'bg-color': self.PALETTE['black'][1],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_outer_clock
             },
@@ -133,7 +134,7 @@ class PolyBounce:
                 'border-radius': 8,    # in pixels
                 'position': [3, 1],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][2],
+                'bg-color': self.PALETTE['black'][1],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.player.get_score
             }
@@ -193,8 +194,15 @@ class PolyBounce:
 
             if event.type == pygame.KEYUP:
                 # TODO: Implement the player input
-                if event.key == pygame.K_RETURN:
-                    print('freeze selected ring + start timer till unfreeze')
+                if event.key == pygame.K_SPACE:
+                    print('FREEZE selected ring')
+                    print('START its timer till unfreeze')
+                    print('REDUCE player\'s number of freezes left to use')
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.player.toggle_slingshot()
+            if event.type == pygame.MOUSEBUTTONUP:
+                self.player.toggle_slingshot()
 
     def process_game_logic(self) -> None:
         """ Retrieve the position data from the PhysicsEngine. """
@@ -207,6 +215,7 @@ class PolyBounce:
     def render(self):
         self.screen.blit(self.background, [0, 0])
         self.all_entities.draw(self.screen)
+        self.player_group.draw(self.screen)
 
         self.clock.tick_busy_loop(self.fps)
         # PhysicsEngine.step_by(self.dt)
@@ -215,4 +224,4 @@ class PolyBounce:
 
 if __name__ == "__main__":
     PolyBounce().start()
-
+    sys.exit()

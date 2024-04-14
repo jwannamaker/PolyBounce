@@ -15,7 +15,6 @@ class Asset(pygame.sprite.Sprite):
                  surface: Optional[Surface] = None):
         self.groups = groups
         super().__init__(groups)
-        print(super().groups)
         self.shape = shape
         self.color = color
         self.position = [position[0], position[1]]
@@ -28,3 +27,7 @@ class Asset(pygame.sprite.Sprite):
 
     def draw(self, surface: Surface) -> None:
         surface.blit(self.image, list(self.rect.topleft))
+
+    def update(self, dt: float) -> None:
+        # print('asset does nothing with dt, just redraws image on itself')
+        self.image.set_colorkey([0, 0, 0])

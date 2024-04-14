@@ -1,8 +1,2 @@
-class Movable:
-    pass
-
-class Player:
-    pass
-
-class Enemy:
-    pass
+from movable.player import Player
+from movable.enemy import Enemy

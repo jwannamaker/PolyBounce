@@ -1,23 +1,12 @@
-import pymunk
-import pygame
-from pygame import Surface
-
-from movable import Movable
+from asset import Asset
 
 
-class Player(Movable):
-    def __init__(self):
+class Player:
+    def __init__(self, game, asset: Asset):
+        self.game = game
+        self.asset = asset
         self.level_score = 0
         self.total_score = 0
-
-    def update(self, dt: float) -> None:
-        pass
-
-    def test_notified(self, data) -> None:
-        pass
-
-    def notified(self, shape: pymunk.Shape):
-        pass
 
     def save_and_clear_score(self):
         # TODO: save the score in a json for highscores

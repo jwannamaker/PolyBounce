@@ -1,11 +1,10 @@
 import pygame
 
-from movable import Movable
 from asset import Asset
 
 
-class Enemy(Movable):
-    def __init__(self, game: Game, asset: pygame.sprite.Sprite):
+class Enemy:
+    def __init__(self, game, asset: pygame.sprite.Sprite):
         self.game = game
         self.asset = asset
         self.hits_taken = 0
@@ -16,10 +15,10 @@ class Enemy(Movable):
         if self.hits_taken >= self.hits_to_die:
             # TODO: DETACH FROM PHYSICS ENGINE OBSERVERS
             self.asset.kill()
+        return False
 
 
-class Side(Movable):
-    def __init__(self,
-                 game: Game,  # type: ignore
-                 asset: Asset):
-        super().__init__()
+class Side:
+    def __init__(self, game, asset: Asset):
+        self.game = game
+        self.asset = asset
