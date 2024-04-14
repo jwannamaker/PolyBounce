@@ -15,6 +15,7 @@ class Asset(pygame.sprite.Sprite):
                  surface: Optional[Surface] = None):
         self.groups = groups
         super().__init__(groups)
+        print(super().groups)
         self.shape = shape
         self.color = color
         self.position = [position[0], position[1]]

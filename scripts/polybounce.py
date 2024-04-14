@@ -5,7 +5,7 @@ import pygame
 from pygame import Surface, Color
 
 from ball import Ball
-from fixedposition.borderedbox import BorderedBox
+from borderedbox import BorderedBox
 
 
 class PolyBounce:
@@ -36,7 +36,8 @@ class PolyBounce:
         self.font = self.load_font()
         self.unit_column = self.screen.get_width() / 8
         self.unit_row = self.screen.get_height() / 9
-        self.load_HUD()
+        self.hud_matrix = {}
+        self.label_list = self.load_HUD()
 
     def grab_palette(self, json_filename: str) -> dict[str, Color]:
         palette = {}
@@ -61,10 +62,10 @@ class PolyBounce:
         pygame.font.init()
         return pygame.font.SysFont('monogram', 40)
 
-    def load_HUD(self) -> None:
+    def load_HUD(self) -> list[BorderedBox]:
         self.unit_column = self.screen.get_width() / 8
         self.unit_row = self.screen.get_height() / 18
-        hud_matrix = {
+        self.hud_matrix = {
             'Level': {
                 'width': 2,     # multiplied by the unit column width
                 'height': 1,    # multiplied by the unit row height
@@ -72,11 +73,11 @@ class PolyBounce:
                 'border-radius': 15,    # in pixels
                 'position': [1, 0.5],      # center, multiplied by unit column/row
                 'font-size': 60,
-                'bg-color': self.PALETTE['black'][2],
+                'bg-color': self.PALETTE['black'][1],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_level
             },
-            'Clock': {
+            'Level Clock': {
                 'width': 2,     # multiplied by the unit column width
                 'height': 1,    # multiplied by the unit row height
                 'border-width': 5,   # in pixels
@@ -85,7 +86,7 @@ class PolyBounce:
                 'font-size': 40,
                 'bg-color': self.PALETTE['black'][1],
                 'font-color': self.PALETTE['white'][0],
-                'update-func': pygame.time.get_ticks
+                'update-func': self.get_level_clock
             },
             'Inner Clock': {
                 'width': 2,     # multiplied by the unit column width
@@ -132,24 +133,26 @@ class PolyBounce:
                 'update-func': self.player.get_score
             }
         }
-        for key in list(hud_matrix.keys()):
+        label_list = []
+        for key in list(self.hud_matrix.keys()):
             label = BorderedBox(game=self,
                                 fixed_text=key,
-                                bg_color=hud_matrix[key]['bg-color'],
-                                font_color=hud_matrix[key]['font-color'],
-                                font_size=hud_matrix[key]['font-size'],
-                                width=(hud_matrix[key]['width'] * self.unit_column)-5,
-                                height=(hud_matrix[key]['height'] * self.unit_row)-5,
-                                border=hud_matrix[key]['border-width'],
-                                position=(hud_matrix[key]['position'][0] * self.unit_column,
-                                          hud_matrix[key]['position'][1] * self.unit_row))
-            if hud_matrix[key]['update-func'] is not None and callable(hud_matrix[key]['update-func']):
-                label.set_update_func(hud_matrix[key]['update-func'])
+                                bg_color=self.hud_matrix[key]['bg-color'],
+                                font_color=self.hud_matrix[key]['font-color'],
+                                font_size=self.hud_matrix[key]['font-size'],
+                                width=(self.hud_matrix[key]['width'] * self.unit_column)-5,
+                                height=(self.hud_matrix[key]['height'] * self.unit_row)-5,
+                                border=self.hud_matrix[key]['border-width'],
+                                position=(self.hud_matrix[key]['position'][0] * self.unit_column,
+                                          self.hud_matrix[key]['position'][1] * self.unit_row))
             label.draw(self.screen)
-            self.HUD.add(label.asset)
+            self.hud_matrix[key]['label'] = label
 
     def get_level(self) -> str:
         return self.player.get_score() // 3
+
+    def get_level_clock(self) -> str:
+        return str(round(pygame.time.get_ticks() / 1000, 1)) + 's'
 
     def start(self) -> None:
         self.running = True
@@ -158,7 +161,6 @@ class PolyBounce:
     def main_loop(self) -> None:
         while self.running:
             self.frame_start = pygame.time.get_ticks()
-            print(self.frame_start)
             self.handle_user_input()
             self.process_game_logic()
             self.render()
@@ -181,7 +183,9 @@ class PolyBounce:
         """ Retrieve the position data from the PhysicsEngine. """
         self.dt = pygame.time.get_ticks() - self.frame_start
         self.all_entities.update(self.dt)
-        self.HUD.update()
+        for key in list(self.hud_matrix.keys()):
+            if self.hud_matrix[key]['update-func'] != None:
+                self.hud_matrix[key]['label'].set_text(str(self.hud_matrix[key]['update-func']()))
 
     def render(self):
         self.screen.blit(self.background, [0, 0])
