@@ -36,8 +36,13 @@ class PolyBounce:
         self.font = self.load_font()
         self.unit_column = self.screen.get_width() / 8
         self.unit_row = self.screen.get_height() / 9
+        self.timers = {
+            'inner': [0],
+            'middle': [0],
+            'outer': [0]
+        }
         self.hud_matrix = {}
-        self.label_list = self.load_HUD()
+        self.load_HUD()
 
     def grab_palette(self, json_filename: str) -> dict[str, Color]:
         palette = {}
@@ -63,85 +68,84 @@ class PolyBounce:
         return pygame.font.SysFont('monogram', 40)
 
     def load_HUD(self) -> list[BorderedBox]:
-        self.unit_column = self.screen.get_width() / 8
-        self.unit_row = self.screen.get_height() / 18
+        self.unit_column = self.screen.get_width() / 32
+        self.unit_row = self.screen.get_height() / 20
         self.hud_matrix = {
             'Level': {
-                'width': 2,     # multiplied by the unit column width
+                'width': 6,     # multiplied by the unit column width
                 'height': 1,    # multiplied by the unit row height
                 'border-width': 5,    # in pixels
                 'border-radius': 15,    # in pixels
-                'position': [1, 0.5],      # center, multiplied by unit column/row
+                'position': [3, 2.5],      # center, multiplied by unit column/row
                 'font-size': 60,
-                'bg-color': self.PALETTE['black'][1],
+                'bg-color': self.PALETTE['black'][2],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_level
             },
             'Level Clock': {
-                'width': 2,     # multiplied by the unit column width
-                'height': 1,    # multiplied by the unit row height
+                'width': 6,     # multiplied by the unit column width
+                'height': 2,    # multiplied by the unit row height
                 'border-width': 5,   # in pixels
                 'border-radius': 15,    # in pixels
-                'position': [7, 0.5],      # center, multiplied by unit column/row
+                'position': [29, 1],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][1],
+                'bg-color': self.PALETTE['black'][2],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_level_clock
             },
             'Inner Clock': {
-                'width': 2,     # multiplied by the unit column width
+                'width': 6,     # multiplied by the unit column width
                 'height': 1,    # multiplied by the unit row height
                 'border-width': 5,   # in pixels
                 'border-radius': 15,    # in pixels
-                'position': [7, 1.5],      # center, multiplied by unit column/row
+                'position': [29, 2.5],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][1],
+                'bg-color': self.PALETTE['black'][2],
                 'font-color': self.PALETTE['white'][0],
-                'update-func': None
+                'update-func': self.get_inner_clock
             },
             'Middle Clock': {
-                'width': 2,     # multiplied by the unit column width
+                'width': 6,     # multiplied by the unit column width
                 'height': 1,    # multiplied by the unit row height
                 'border-width': 5,   # in pixels
                 'border-radius': 15,    # in pixels
-                'position': [7, 2.5],      # center, multiplied by unit column/row
+                'position': [29, 5],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][1],
+                'bg-color': self.PALETTE['black'][2],
                 'font-color': self.PALETTE['white'][0],
-                'update-func': None
+                'update-func': self.get_middle_clock
             },
             'Outer Clock': {
-                'width': 2,     # multiplied by the unit column width
+                'width': 6,     # multiplied by the unit column width
                 'height': 1,    # multiplied by the unit row height
                 'border-width': 5,   # in pixels
                 'border-radius': 15,    # in pixels
-                'position': [7, 3.5],      # center, multiplied by unit column/row
+                'position': [29, 7.5],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][1],
+                'bg-color': self.PALETTE['black'][2],
                 'font-color': self.PALETTE['white'][0],
-                'update-func': None
+                'update-func': self.get_outer_clock
             },
             'Score': {
-                'width': 4,     # multiplied by the unit column width
-                'height': 1,    # multiplied by the unit row height
+                'width': 6,     # multiplied by the unit column width
+                'height': 2,    # multiplied by the unit row height
                 'border-width': 5,   # in pixels
                 'border-radius': 8,    # in pixels
-                'position': [4, 0.5],      # center, multiplied by unit column/row
+                'position': [3, 1],      # center, multiplied by unit column/row
                 'font-size': 40,
-                'bg-color': self.PALETTE['black'][1],
+                'bg-color': self.PALETTE['black'][2],
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.player.get_score
             }
         }
-        label_list = []
         for key in list(self.hud_matrix.keys()):
             label = BorderedBox(game=self,
                                 fixed_text=key,
                                 bg_color=self.hud_matrix[key]['bg-color'],
                                 font_color=self.hud_matrix[key]['font-color'],
                                 font_size=self.hud_matrix[key]['font-size'],
-                                width=(self.hud_matrix[key]['width'] * self.unit_column)-5,
-                                height=(self.hud_matrix[key]['height'] * self.unit_row)-5,
+                                width=(self.hud_matrix[key]['width'] * self.unit_column)-10,
+                                height=(self.hud_matrix[key]['height'] * self.unit_row)-10,
                                 border=self.hud_matrix[key]['border-width'],
                                 position=(self.hud_matrix[key]['position'][0] * self.unit_column,
                                           self.hud_matrix[key]['position'][1] * self.unit_row))
@@ -152,7 +156,20 @@ class PolyBounce:
         return self.player.get_score() // 3
 
     def get_level_clock(self) -> str:
-        return str(round(pygame.time.get_ticks() / 1000, 1)) + 's'
+
+        return str(pygame.time.get_ticks() // 1000) + 's'
+
+    def start_inner_clock(self) -> str:
+        self.timers['inner'].append((pygame.time.get_ticks()//1000)+30)
+
+    def get_inner_clock(self) -> str:
+        return str(self.timers['inner'][0]-(pygame.time.get_ticks()//1000)) + 's'
+
+    def get_middle_clock(self) -> str:
+        return str(30-(pygame.time.get_ticks()//1000)) + 's'
+
+    def get_outer_clock(self) -> str:
+        return str(30-(pygame.time.get_ticks()//1000)) + 's'
 
     def start(self) -> None:
         self.running = True

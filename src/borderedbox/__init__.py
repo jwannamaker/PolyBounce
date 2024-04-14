@@ -47,8 +47,8 @@ class BorderedBox:
         return self.asset.rect.width-(self.border*2)-text_width
 
     def draw(self, surface) -> None:
-        print('draw')
         self.asset.image.fill(self.bg_color)
+        # self.asset.image, self.asset.rect = self.asset.shape.get_image_rect(self.bg_color)
         self.fixed_text_image = self.font.render(self.fixed_text, False, self.font_color)
         self.text_image = self.font.render(self.text, False, self.font_color)
         self.text_rect = self.text_image.get_bounding_rect()
