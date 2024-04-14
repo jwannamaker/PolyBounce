@@ -7,7 +7,7 @@ from pygame import Surface, Color
 
 from ball import Ball, Slingshot
 from borderedbox import BorderedBox
-
+from physics import PhysicsEngine
 
 class PolyBounce:
 
@@ -32,11 +32,12 @@ class PolyBounce:
         self.player_group = pygame.sprite.Group()
         self.enemy_group = pygame.sprite.Group()
 
+        PhysicsEngine.set_game(self)
         self.player = Ball(self)
 
         self.font = self.load_font()
-        self.unit_column = self.screen.get_width() / 8
-        self.unit_row = self.screen.get_height() / 9
+        self.unit_column = 0
+        self.unit_row = 0
         self.timers = {
             'inner': [0],
             'middle': [0],
@@ -55,6 +56,7 @@ class PolyBounce:
 
     def get_shuffled_colors(self, N: int) -> list[Color]:
         colors = list(self.PALETTE.keys())
+        colors.remove('red')
         colors.remove('white')
         colors.remove('black')
         random.shuffle(colors)
@@ -83,7 +85,7 @@ class PolyBounce:
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_level
             },
-            'Level Clock': {
+            'Freezes Left': {
                 'width': 6,     # multiplied by the unit column width
                 'height': 2,    # multiplied by the unit row height
                 'border-width': 5,   # in pixels
@@ -91,8 +93,8 @@ class PolyBounce:
                 'position': [29, 1],      # center, multiplied by unit column/row
                 'font-size': 40,
                 'bg-color': self.PALETTE['black'][1],
-                'font-color': self.PALETTE['white'][0],
-                'update-func': self.get_level_clock
+                'font-color': self.PALETTE['aqua'][0],
+                'update-func': self.get_freezes_left
             },
             'Inner Clock': {
                 'width': 6,     # multiplied by the unit column width
@@ -156,9 +158,9 @@ class PolyBounce:
     def get_level(self) -> str:
         return self.player.get_score() // 3
 
-    def get_level_clock(self) -> str:
+    def get_freezes_left(self) -> str:
 
-        return str(pygame.time.get_ticks() // 1000) + 's'
+        return str(self.player.get_freezes())
 
     def start_inner_clock(self) -> str:
         self.timers['inner'].append((pygame.time.get_ticks()//1000)+30)
@@ -191,18 +193,20 @@ class PolyBounce:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-
-            if event.type == pygame.KEYUP:
-                # TODO: Implement the player input
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_f:
                     print('FREEZE selected ring')
                     print('START its timer till unfreeze')
-                    print('REDUCE player\'s number of freezes left to use')
+                    print('REDUCE player number of freezes left to use')
+                if event.key == pygame.K_SPACE:
+                    self.player.toggle_moving()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
+                print('click DOWN')
                 self.player.toggle_slingshot()
             if event.type == pygame.MOUSEBUTTONUP:
+                print('REDUCE player number of hits')
                 self.player.toggle_slingshot()
+                self.player.toggle_moving()
 
     def process_game_logic(self) -> None:
         """ Retrieve the position data from the PhysicsEngine. """
@@ -214,8 +218,9 @@ class PolyBounce:
 
     def render(self):
         self.screen.blit(self.background, [0, 0])
-        self.all_entities.draw(self.screen)
-        self.player_group.draw(self.screen)
+        for entity in self.all_entities:
+            entity.draw(self.screen)
+
 
         self.clock.tick_busy_loop(self.fps)
         # PhysicsEngine.step_by(self.dt)

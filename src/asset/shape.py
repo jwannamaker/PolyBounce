@@ -120,7 +120,7 @@ class REG_POLY(Shape):
 class BOX(Shape):
     width: float
     height: float
-    border: int
+    border: int = 0
 
     def __post_init__(self):
         super().__init__()
