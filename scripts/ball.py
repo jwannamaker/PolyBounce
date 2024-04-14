@@ -63,13 +63,13 @@ class Ball:
     def draw_slingshot(self, screen: Surface) -> None:
         self.slingshot_image = Surface(self.game.screen.get_size())
         self.slingshot_image.set_colorkey([0, 0, 0])
-        if self.slingshot.IDLE:
+        if self.slingshot is Slingshot.IDLE:
             self.slingshot_rect = pygame.draw.line(self.slingshot_image,
                                                    self.game.PALETTE['black'][5],
                                                    pygame.mouse.get_pos(),
                                                    self.asset.rect.center,
                                                    round(self.asset.shape.get_width()))
-        elif self.slingshot.PULL_BACK:
+        elif self.slingshot is Slingshot.PULL_BACK:
             self.slingshot_rect = pygame.draw.line(self.slingshot_image,
                                                    self.game.PALETTE['red'][0],
                                                    pygame.mouse.get_pos(),
