@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pygame
-from pygame import Surface, Color, Rect
+from pygame import Surface, Color, FRect
 from pygame import gfxdraw
 
 
@@ -29,7 +29,7 @@ class Shape(ABC):
         return Surface([self.get_width(), self.get_height()])
 
     @abstractmethod
-    def get_image_rect(self, color: Color) -> tuple[Surface, Rect]:
+    def get_image_rect(self, color: Color) -> tuple[Surface, FRect]:
         pass
 
 
@@ -49,10 +49,10 @@ class CIRCLE(Shape):
     def get_height(self) -> float:
         return self.radius * 2
 
-    def get_image_rect(self, color: Color) -> tuple[Surface, Rect]:
+    def get_image_rect(self, color: Color) -> tuple[Surface, FRect]:
         image = super().get_blank_surface()
-        rect = pygame.draw.circle(image, color, self.get_center_offset(), self.radius)
-        return image, rect
+        pygame.draw.circle(image, color, self.get_center_offset(), self.radius)
+        return image, image.get_frect()
 
 
 @dataclass
@@ -77,10 +77,10 @@ class POLY(Shape):
         max_y = self.vertices[len(self.vertices)][1]
         return max_y - min_y
 
-    def get_image_rect(self, color: Color) -> tuple[Surface, Rect]:
+    def get_image_rect(self, color: Color) -> tuple[Surface, FRect]:
         image = super().get_blank_surface()
         gfxdraw.filled_polygon(image, self.vertices, color)
-        return image, image.get_rect()
+        return image, image.get_frect()
 
 
 @dataclass
@@ -110,10 +110,10 @@ class REG_POLY(Shape):
             vertices.append((x, y))
         return vertices
 
-    def get_image_rect(self, color: Color) -> tuple[Surface, Rect]:
+    def get_image_rect(self, color: Color) -> tuple[Surface, FRect]:
         image = super().get_blank_surface()
         gfxdraw.filled_polygon(image, self.get_vertices(), color)
-        return image, image.get_rect()
+        return image, image.get_frect()
 
 
 @dataclass
@@ -140,11 +140,11 @@ class BOX(Shape):
                 (self.width, self.height),
                 (self.width, 0)]
 
-    def get_image_rect(self, color: Color) -> tuple[Surface, Rect]:
+    def get_image_rect(self, color: Color) -> tuple[Surface, FRect]:
         image = super().get_blank_surface()
-        pygame.draw.rect(image, [70, 70, 70], [0, 0, self.width, self.height], border_radius=25)
+        pygame.draw.rect(image, [70, 70, 70], [0, 0, self.width, self.height], border_radius=6)
         pygame.draw.rect(image, color, [self.border,
                                         self.border,
                                         self.width-(self.border*2),
-                                        self.height-(self.border*2)], border_radius=25)
-        return image, image.get_rect()
+                                        self.height-(self.border*2)], border_radius=6)
+        return image, image.get_frect()

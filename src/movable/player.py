@@ -6,8 +6,7 @@ from movable import Movable
 
 
 class Player(Movable):
-    def __init__(self, asset: pygame.sprite.Sprite):
-        self.asset = asset
+    def __init__(self):
         self.level_score = 0
         self.total_score = 0
 
