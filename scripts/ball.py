@@ -20,11 +20,15 @@ class Ball:
                            CIRCLE(10),
                            self.game.PALETTE['white'][0],
                            self.game.CENTER)
-        self.freezes = 6
-        self.slingshot = Slingshot.IDLE
-        self.moving = False
         self.level_score = 0
         self.total_score = 0
+        self.moving = False
+        self.freezes = 6
+
+        self.slingshot = Slingshot.IDLE
+        self.slingshot_image = Surface(self.game.screen.get_size())
+        self.slingshot_image.set_colorkey([0, 0, 0])
+        self.slingshot_rect = self.slingshot_image.get_frect()
 
     def get_freezes(self) -> int:
         return self.freezes
@@ -51,24 +55,29 @@ class Ball:
             return
         if self.slingshot == Slingshot.IDLE:
             self.slingshot = Slingshot.PULL_BACK
-            return
         elif self.slingshot == Slingshot.PULL_BACK:
             self.slingshot = Slingshot.RELEASE
         else:
             self.slingshot = Slingshot.IDLE
 
     def draw_slingshot(self, screen: Surface) -> None:
+        self.slingshot_image = Surface(self.game.screen.get_size())
+        self.slingshot_image.set_colorkey([0, 0, 0])
         if self.slingshot.IDLE:
-            pygame.draw.line(screen,
-                             self.game.PALETTE['black'][5],
-                             pygame.mouse.get_pos(),
-                             self.asset.rect.center,
-                             round(self.asset.shape.get_width()))
+            self.slingshot_rect = pygame.draw.line(self.slingshot_image,
+                                                   self.game.PALETTE['black'][5],
+                                                   pygame.mouse.get_pos(),
+                                                   self.asset.rect.center,
+                                                   round(self.asset.shape.get_width()))
         elif self.slingshot.PULL_BACK:
-            pygame.draw.line(screen,
-                             self.game.PALETTE[''])
-        else:
-            print('DON\'T draw slingshot')
+            self.slingshot_rect = pygame.draw.line(self.slingshot_image,
+                                                   self.game.PALETTE['red'][0],
+                                                   pygame.mouse.get_pos(),
+                                                   self.asset.rect.center,
+                                                   round(self.asset.shape.get_width()))
+        self.slingshot_rect = self.slingshot_image.get_frect()
+        # self.slingshot_rect = self.slingshot_image.get_bounding_rect()
+        screen.blit(self.slingshot_image, self.slingshot_rect)
 
     def toggle_moving(self) -> None:
         self.moving = False if self.moving else True
@@ -85,5 +94,6 @@ class Ball:
             print('ball not moving')
 
     def draw(self, screen: Surface) -> None:
+        # Has to be manually called for some reason
         self.draw_slingshot(self.game.screen)
         self.asset.draw(self.game.screen)

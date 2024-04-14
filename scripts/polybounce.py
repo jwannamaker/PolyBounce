@@ -159,7 +159,6 @@ class PolyBounce:
         return self.player.get_score() // 3
 
     def get_freezes_left(self) -> str:
-
         return str(self.player.get_freezes())
 
     def start_inner_clock(self) -> str:
@@ -218,12 +217,12 @@ class PolyBounce:
 
     def render(self):
         self.screen.blit(self.background, [0, 0])
-        for entity in self.all_entities:
-            entity.draw(self.screen)
-
+        self.player.draw(self.screen)
+        # self.screen.subsurface()
+        self.all_entities.draw(self.screen)
 
         self.clock.tick_busy_loop(self.fps)
-        # PhysicsEngine.step_by(self.dt)
+        PhysicsEngine.step_by(self.dt)
         pygame.display.flip()
 
 

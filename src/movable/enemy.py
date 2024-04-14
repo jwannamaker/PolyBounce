@@ -10,12 +10,10 @@ class Enemy:
         self.hits_taken = 0
         self.hits_to_die = 1
 
-    def take_hit(self, hit_strength: int = 1) -> bool:
+    def take_hit(self, hit_strength: int = 1):
         self.hits_taken += hit_strength
         if self.hits_taken >= self.hits_to_die:
-            # TODO: DETACH FROM PHYSICS ENGINE OBSERVERS
             self.asset.kill()
-        return False
 
 
 class Side:
