@@ -8,7 +8,7 @@ from asset.shape import Shape
 
 class Asset(pygame.sprite.Sprite):
     def __init__(self,
-                 groups: list[pygame.sprite.Group],
+                 groups,
                  shape: Shape,
                  color: Color,
                  position: tuple[float, float],

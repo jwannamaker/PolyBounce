@@ -76,7 +76,7 @@ class PolyBounce:
                 'font-color': self.PALETTE['white'][0],
                 'update-func': self.get_level
             },
-            'Level Clock': {
+            'Clock': {
                 'width': 2,     # multiplied by the unit column width
                 'height': 1,    # multiplied by the unit row height
                 'border-width': 5,   # in pixels
@@ -146,6 +146,7 @@ class PolyBounce:
             if hud_matrix[key]['update-func'] is not None and callable(hud_matrix[key]['update-func']):
                 label.set_update_func(hud_matrix[key]['update-func'])
             label.draw(self.screen)
+            self.HUD.add(label.asset)
 
     def get_level(self) -> str:
         return self.player.get_score() // 3
@@ -157,6 +158,7 @@ class PolyBounce:
     def main_loop(self) -> None:
         while self.running:
             self.frame_start = pygame.time.get_ticks()
+            print(self.frame_start)
             self.handle_user_input()
             self.process_game_logic()
             self.render()
@@ -192,3 +194,4 @@ class PolyBounce:
 
 if __name__ == "__main__":
     PolyBounce().start()
+
