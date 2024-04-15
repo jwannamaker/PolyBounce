@@ -134,11 +134,11 @@ class BOX(Shape):
     def get_height(self) -> float:
         return self.height
 
-    def get_corners(self) -> list[tuple[float, float]]:
-        return [(0, 0),
-                (0, self.height),
-                (self.width, self.height),
-                (self.width, 0)]
+    def get_corners(self) -> list[list[float, float]]:
+        return [[0, 0],
+                [0, self.height],
+                [self.width, self.height],
+                [self.width, 0]]
 
     def get_image_rect(self, color: Color) -> tuple[Surface, FRect]:
         image = super().get_blank_surface()

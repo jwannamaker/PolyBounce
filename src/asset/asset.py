@@ -28,6 +28,6 @@ class Asset(pygame.sprite.Sprite):
     def draw(self, surface: Surface) -> None:
         surface.blit(self.image, list(self.rect.topleft))
 
-    def update(self, dt: float) -> None:
-        # print('asset does nothing with dt, just redraws image on itself')
+    def update(self) -> None:
         self.image.set_colorkey([0, 0, 0])
+

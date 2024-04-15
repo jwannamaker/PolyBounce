@@ -1,4 +1,5 @@
 import math
+import random
 
 import pymunk
 from pymunk import pygame_util
@@ -8,7 +9,7 @@ from pygame import Surface
 from asset.shape import BOX
 from asset import Asset
 
-GRAVITY_STRENGTH = 3.8e5
+GRAVITY_STRENGTH = 1.0
 
 
 class PhysicsEngine:
@@ -18,7 +19,8 @@ class PhysicsEngine:
     """
 
     game = None
-    GAME_CENTER = (0, 0)
+    GAME_CENTER = (1.0, 1.0)
+    y_offset = 100
     space = None
     collision_handlers = []
     # observers: dict[list[Asset]] = {}
@@ -28,19 +30,22 @@ class PhysicsEngine:
     def set_game(game):
         PhysicsEngine.space = pymunk.Space()
         PhysicsEngine.game = game
-        PhysicsEngine.GAME_CENTER = pymunk.Vec2d(*game.CENTER)
+        PhysicsEngine.GAME_CENTER = pymunk.Vec2d(float(game.CENTER[0]), float(-game.CENTER[1]))
+        PhysicsEngine.y_offset = game.screen.get_height()
         print('the physics engine is set! CENTER @', str(PhysicsEngine.GAME_CENTER))
 
     @staticmethod
     def planet_gravity(body: pymunk.Body, gravity: float, damping: float, dt: float):
-        distance_squared = body.position.get_dist_sqrd(PhysicsEngine.GAME_CENTER)
-        G = (
-            body.position - (pymunk.Vec2d(PhysicsEngine.game.CENTER[0], PhysicsEngine.game.CENTER[1]))
-            * -GRAVITY_STRENGTH
-            / (distance_squared * math.sqrt(distance_squared))
+        # Gravitational acceleration is proportional to the inverse square of
+        # distance, and directed toward the origin. The central planet is assumed
+        # to be massive enough that it affects the satellites but not vice versa.
+        sq_dist = body.position.get_dist_sqrd((896, -560))
+        g = (
+                (body.position - pymunk.Vec2d(896, -560))
+                * -GRAVITY_STRENGTH
+                / (sq_dist * math.sqrt(sq_dist))
         )
-        # Replacing the built-in velocity with this one
-        pymunk.Body.update_velocity(body, G, damping, dt)
+        pymunk.Body.update_velocity(body, g, damping, dt)
 
     @staticmethod
     def add_collision_handler(shape, other_shape):
@@ -53,21 +58,20 @@ class PhysicsEngine:
         PhysicsEngine.collision_handlers.append(handler)
 
     @staticmethod
-    def add_to_space(position: tuple[float, float], body: pymunk.Body, shape: pymunk.Shape):
-        body.position = list(position)
-        body.velocity_func = PhysicsEngine.planet_gravity
+    def add_to_space(body: pymunk.Body, shape: pymunk.Shape):
 
-        # Setting the initial velocity and putting into orbit
-        r = body.position.get_distance((300, 300))
+        # Set the box's velocity to put it into a circular orbit from its
+        # starting position.
+        r = body.position.get_distance((896, -560))
         v = math.sqrt(GRAVITY_STRENGTH / r) / r
-        body.velocity = (body.position - PhysicsEngine.GAME_CENTER).perpendicular() * v
-
-        # Setting the angular velocity according to its orbital period
+        body.velocity = (body.position - pymunk.Vec2d(896, -560)).perpendicular() * v
+        # Set the box's angular velocity to match its orbital period and
+        # align its initial angle with its position.
         body.angular_velocity = v
         body.angle = math.atan2(body.position.y, body.position.x)
 
         # Setting the mass somewhere else instead of here will be best
-        # shape.mass = 1
+        shape.mass = 1
         shape.elasticity = 0.01
         shape.friction = 0.45
         PhysicsEngine.space.add(body, shape)
@@ -78,13 +82,17 @@ class PhysicsEngine:
         static_body.
         """
         corners = BOX(screen_size[0], screen_size[1]).get_corners()
+        for point in corners:
+            point[1] = -point[1]
+            print('CORNER @ ' + str(point))
+
         for i in range(len(corners)):
             j = (i + 1) % len(corners)
             segment = pymunk.Segment(PhysicsEngine.space.static_body, corners[i], corners[j], 1)
             segment.set_neighbors(corners[i], corners[j]) 
-            segment.density = 100
-            segment.elasticity = 0.999
-            segment.friction = 0.49
+            segment.density = 10
+            segment.elasticity = 0.9
+            segment.friction = 0.5
             PhysicsEngine.space.add(segment)
 
     @staticmethod
@@ -112,16 +120,34 @@ class PhysicsEngine:
         PhysicsEngine.space.add(*segment_list)
 
     @staticmethod
-    def create_circle(radius: float) -> pymunk.Shape:
-        mass = pymunk.area_for_circle(inner_radius=0, outer_radius=radius) * 2
-        moment = pymunk.moment_for_circle(mass, inner_radius=0, outer_radius=radius)
-        circle_body = pymunk.Body(mass, moment)
-        circle_shape = pymunk.Circle(circle_body, radius)
-        PhysicsEngine.add_to_space(circle_body, circle_shape)
-        return circle_shape
+    def add_random_circle(quantity: int, colors: list) -> list[pymunk.Body]:
+        bodies = []
+        for i in range(quantity):
+            new_body = pymunk.Body()
+            new_body.position = pymunk.Vec2d(random.randint(94, 1027), random.randint(-94, -1027))
+            new_body.velocity_func = PhysicsEngine.planet_gravity
+            bodies.append(new_body)
+            new_shape = pymunk.Circle(new_body, random.randint(6, 24))
+            new_shape.mass = 1
+            new_shape.friction = 0.7
+            new_shape.elasticity = 0
+            new_shape.color = colors[i]
+            PhysicsEngine.add_to_space(new_body, new_shape)
+        return bodies
 
     @staticmethod
-    def create_poly(points: list[tuple[float, float]], 
+    def create_circle(radius: float, position) -> pymunk.Body:
+        # mass = pymunk.area_for_circle(inner_radius=0, outer_radius=radius) * 1.0
+        mass = 1.0
+        # moment = pymunk.moment_for_circle(mass, inner_radius=0, outer_radius=radius)
+        circle_body = pymunk.Body()
+        circle_body.position = position
+        circle_shape = pymunk.Circle(circle_body, radius)
+        PhysicsEngine.add_to_space(position, circle_body, circle_shape)
+        return circle_body
+
+    @staticmethod
+    def create_poly(points: list[tuple[float, float]],
                     center_position: tuple[float, float],
                     angular_velocity: float) -> pymunk.Shape:
         # TODO: Alter the way that bodies for sides are created ? So not every side segment has its own body
@@ -129,21 +155,15 @@ class PhysicsEngine:
         moment = pymunk.moment_for_poly(mass, points)
         side_body = pymunk.Body(mass, moment, pymunk.Body.KINEMATIC)
         side_body.angular_velocity = angular_velocity
-        side_shape = pymunk.Poly(body=side_body, 
+        side_shape = pymunk.Poly(body=side_body,
                                  vertices=points,
                                  radius=1)
         PhysicsEngine.add_to_space(center_position, side_body, side_shape)
         return side_shape
-
     @staticmethod
-    def get_points(shape: pymunk.Shape) -> list[tuple[float, float]]:
-        return shape.get_vertices()
+    def get_position(body: pymunk.Body) -> list[float, float]:
+        return [body.position.x, body.position.y]
 
-    @staticmethod
-    def get_centroid(shape: pymunk.Shape) -> tuple[float, float]:
-        return shape.center_of_gravity
-
-    
     @staticmethod
     def begin(arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict):
         print('begin')

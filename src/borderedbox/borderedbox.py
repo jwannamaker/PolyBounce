@@ -22,7 +22,7 @@ class BorderedBox:
         self.fixed_text_image = self.font.render(self.fixed_text, False, self.font_color)
         self.fixed_text_rect = self.fixed_text_image.get_bounding_rect()
 
-        self.text = 'look away...'
+        self.text = '0'
         self.text_image = self.font.render(self.text, False, self.font_color)
         self.text_rect = self.text_image.get_bounding_rect()
         self.text_rect.clamp_ip(self.asset.rect)
@@ -60,8 +60,9 @@ class BorderedBox:
 
         self.asset.draw(surface)
 
-    def update(self, dt: float) -> None:
-        self.asset.update()
+    def update(self) -> None:
+        print('Boxes do nothing with a new position')
+        self.asset.update(self.asset.position)
         self.draw(self.game.screen)
 
     def set_text(self, text: str) -> None:
@@ -70,3 +71,34 @@ class BorderedBox:
 
     def set_bg_color(self, bg_color: Color) -> None:
         self.bg_color = bg_color
+
+
+class ColorMeter:
+    def __init__(self, game, fixed_text: str, bg_color: Color, font_color: Color,
+                 width: float, height: float, margin: int, position: tuple[float, float]):
+        self.game = game
+        self.font: Font = self.game.font
+        self.asset = Asset([self.game.all_entities, self.game.HUD],
+                           BOX(width, height),
+                           bg_color,
+                           position)
+        self.margin = margin
+        self.font_color = font_color
+        self.bg_color = bg_color
+
+        self.fixed_text = fixed_text
+        self.fixed_text_image = self.font.render(self.fixed_text, False, self.font_color)
+        self.fixed_text_rect = self.fixed_text_image.get_bounding_rect()
+
+        self.text = 'hi :)'
+        self.text_image = self.font.render(self.text, False, self.font_color)
+        self.text_rect = self.text_image.get_bounding_rect()
+        self.text_rect.clamp_ip(self.asset.rect)
+        self.text_rect.clip(self.asset.rect)
+
+        self.asset.image.blit(self.fixed_text_image,
+                              [self.get_left_align_x(), self.get_center_align_y(self.fixed_text)]),
+        self.asset.image.blit(self.text_image,
+                              [self.get_right_align_x(self.text), self.get_center_align_y(self.text)])
+
+        self.update_func = None
