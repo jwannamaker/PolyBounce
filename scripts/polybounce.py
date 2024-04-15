@@ -48,6 +48,7 @@ class PolyBounce:
         self.load_level(1)
         self.load_level(2)
         self.load_level(3)
+        self.load_level()
         self.hud_matrix = {}
         self.load_HUD()
 
